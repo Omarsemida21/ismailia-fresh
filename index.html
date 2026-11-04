@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ismailia Fresh — Fridge Inventory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ===== Theme — swap these when brand colors arrive ===== */
+:root{
+  --brand:#1f6f5c;        /* primary */
+  --brand-ink:#ffffff;
+  --brand-soft:#e6f2ee;
+  --accent:#f29f05;       /* secondary */
+  --bg:#f5f6f4;
+  --card:#ffffff;
+  --ink:#1c2321;
+  --muted:#66706c;
+  --line:#e2e5e2;
+  --ok:#1e9e5a;  --ok-bg:#e3f5ea;
+  --warn:#c98a00; --warn-bg:#fff3d6;
+  --bad:#d23c3c;  --bad-bg:#fde5e5;
+  --radius:12px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans Arabic",system-ui,sans-serif;font-size:15px}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--brand)}
+.app{display:grid;grid-template-columns:230px 1fr;min-height:100vh}
+aside{background:var(--card);border-inline-end:1px solid var(--line);padding:18px 12px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:4px}
+.logo{display:flex;align-items:center;gap:10px;padding:4px 8px 18px}
+.logo .mark{width:38px;height:38px;border-radius:10px;background:var(--brand);color:var(--brand-ink);display:grid;place-items:center;font-weight:700}
+.logo b{display:block;font-size:15px}.logo small{color:var(--muted);font-size:12px}
+nav a{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;text-decoration:none;color:var(--ink);font-weight:500}
+nav a:hover{background:var(--bg)}
+nav a.on{background:var(--brand-soft);color:var(--brand)}
+nav svg{width:18px;height:18px;flex:none}
+.side-foot{margin-top:auto;display:flex;flex-direction:column;gap:6px}
+main{padding:22px 26px 60px;min-width:0}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+h1{font-size:22px;margin:0}
+.sub{color:var(--muted);font-size:13px;margin-top:2px}
+.btn{border:1px solid var(--line);background:var(--card);padding:8px 14px;border-radius:9px;cursor:pointer;font-weight:500;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn:hover{border-color:#c9cec9}
+.btn.pri{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+.btn.pri:hover{filter:brightness(1.08)}
+.btn.sm{padding:5px 10px;font-size:13px}
+.btn.ghost{border-color:transparent;background:transparent}
+.btn.danger{color:var(--bad)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+.grid{display:grid;gap:14px}
+.grid>*{min-width:0}
+.kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.kpi .l{color:var(--muted);font-size:13px}
+.kpi .v{font-size:28px;font-weight:700;margin-top:4px;font-variant-numeric:tabular-nums}
+.kpi .h{font-size:12px;color:var(--muted)}
+.kpi.warn .v{color:var(--warn)} .kpi.bad .v{color:var(--bad)}
+.two{grid-template-columns:1.3fr 1fr}
+h3{margin:0 0 12px;font-size:15px}
+.bars{display:flex;flex-direction:column;gap:9px}
+.bar{display:grid;grid-template-columns:90px 1fr 52px;align-items:center;gap:10px;font-size:13px}
+.bar .track{height:12px;background:var(--bg);border-radius:6px;overflow:hidden;display:flex}
+.bar .track i{display:block;height:100%}
+.bar .n{text-align:end;font-variant-numeric:tabular-nums;font-weight:600}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--muted);margin-top:12px}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:start;font-weight:600;color:var(--muted);font-size:12.5px;padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.chip{white-space:nowrap}
+.tbl-wrap{overflow:auto;border:1px solid var(--line);border-radius:var(--radius);background:var(--card)}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+.b-ok{background:var(--ok-bg);color:var(--ok)} .b-warn{background:var(--warn-bg);color:var(--warn)} .b-bad{background:var(--bad-bg);color:var(--bad)}
+.b-gray{background:var(--bg);color:var(--muted)}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+select,input[type=text],input[type=password],input[type=number],input[type=date],input[type=search],input[type=tel],textarea{border:1px solid var(--line);background:var(--card);border-radius:9px;padding:8px 10px;min-width:0}
+select:focus,input:focus,textarea:focus{outline:2px solid var(--brand-soft);border-color:var(--brand)}
+.fridges{grid-template-columns:repeat(auto-fill,minmax(270px,1fr))}
+.fridge{cursor:pointer;transition:border-color .15s}
+.fridge:hover{border-color:var(--brand)}
+.fridge .hd{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.fridge .code{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.3px}
+.fridge .own{font-weight:600;font-size:15.5px;margin-top:2px}
+.fridge .shop{color:var(--muted);font-size:13px}
+.fridge .stats{display:flex;gap:16px;margin-top:12px;font-size:13px}
+.fridge .stats b{display:block;font-size:18px;font-variant-numeric:tabular-nums}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+.chip{font-size:11.5px;padding:2px 8px;border-radius:6px;background:var(--bg)}
+.muted{color:var(--muted)}
+.maps{grid-template-columns:1fr 1fr}
+.map>svg{width:100%;height:auto;display:block;border-radius:10px}
+.pin{cursor:pointer}
+.pin:hover circle.c{r:11}
+.mapinfo{margin-top:12px;min-height:84px}
+.modal-bg{position:fixed;inset:0;background:rgba(20,25,23,.42);display:none;align-items:center;justify-content:center;padding:16px;z-index:50}
+.modal-bg.show{display:flex}
+.modal{background:var(--card);border-radius:14px;width:min(560px,100%);max-height:90vh;overflow:auto;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.modal.wide{width:min(860px,100%)}
+.modal h2{margin:0 0 14px;font-size:18px}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form label{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:500}
+.form .full{grid-column:1/-1}
+.form-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+.sizes{display:flex;flex-wrap:wrap;gap:8px}
+.szopt{cursor:pointer}
+.szopt input{position:absolute;opacity:0;pointer-events:none}
+.szopt span{display:inline-block;padding:7px 14px;border:1px solid var(--line);border-radius:9px;font-weight:500;user-select:none}
+.szopt input:checked+span{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+.szopt input:focus-visible+span{outline:2px solid var(--brand-soft)}
+.hint{font-size:12px;color:var(--muted);font-weight:400}
+.toast{position:fixed;bottom:20px;inset-inline-start:50%;transform:translateX(50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:10px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:60}
+[dir=ltr] .toast{transform:translateX(-50%)}
+.toast.show{opacity:1}
+.drop{border:2px dashed var(--line);border-radius:var(--radius);padding:28px;text-align:center;background:var(--card);cursor:pointer}
+.drop.over{border-color:var(--brand);background:var(--brand-soft)}
+.err{color:var(--bad);font-size:12.5px}
+code.csv{display:block;white-space:pre;overflow:auto;background:var(--bg);padding:12px;border-radius:9px;font-size:12.5px;direction:ltr;text-align:left}
+.empty{padding:30px;text-align:center;color:var(--muted)}
+.mobile-nav{display:none}
+/* login */
+#login{display:none;min-height:100vh;align-items:center;justify-content:center;padding:20px;background:radial-gradient(1200px 600px at 50% -10%,var(--brand-soft),var(--bg))}
+body.locked #login{display:flex} body.locked .app,body.locked .mobile-nav{display:none!important}
+.lcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:28px;width:min(440px,100%);box-shadow:0 20px 60px rgba(0,0,0,.08)}
+.lcard .mark{width:52px;height:52px;border-radius:14px;background:var(--brand);color:var(--brand-ink);display:grid;place-items:center;font-weight:700;font-size:20px;margin:0 auto 10px}
+.lcard h1{text-align:center;font-size:20px}.lcard .sub{text-align:center}
+.lcard form{display:flex;flex-direction:column;gap:10px;margin-top:20px}
+.lcard input{width:100%}
+.demo-tag{display:inline-block;background:var(--warn-bg);color:#7a5600;font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:999px}
+.acc{display:flex;align-items:center;gap:10px;width:100%;text-align:start;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:9px 12px;cursor:pointer}
+.acc:hover{border-color:var(--brand)}
+.av{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:13px;color:#fff;flex:none}
+.userbox{display:flex;align-items:center;gap:9px;padding:9px;border:1px solid var(--line);border-radius:10px}
+.userbox b{font-size:13px;display:block;line-height:1.3}.userbox small{color:var(--muted);font-size:11.5px}
+/* role gating */
+body.r-viewer [data-act="addStock"],body.r-viewer [data-act="withdraw"],body.r-viewer [data-act="addFridge"],body.r-viewer [data-act="addProduct"],body.r-viewer [data-act="reset"],
+body.r-store [data-act="addFridge"],body.r-store [data-act="addProduct"],body.r-store [data-act="reset"]{display:none!important}
+body:not(.r-admin) [data-chg="policy"],body:not(.r-admin) [data-chg="warnDays"]{pointer-events:none;opacity:.55}
+.feed{display:flex;flex-direction:column}
+.feed .it{display:flex;gap:12px;padding:12px 4px;border-bottom:1px solid var(--line);align-items:flex-start}
+.feed .it:last-child{border-bottom:0}
+.feed .tm{color:var(--muted);font-size:12px;margin-top:2px}
+.lmap{height:360px;border-radius:10px;z-index:0}
+@media (max-width:900px){
+  .app{grid-template-columns:1fr}
+  aside{display:none}
+  .mobile-nav{display:flex;position:sticky;top:0;z-index:20;background:var(--card);border-bottom:1px solid var(--line);overflow-x:auto;padding:6px;gap:4px}
+  .mobile-nav a{flex:none;padding:7px 11px;border-radius:8px;text-decoration:none;color:var(--ink);font-size:13.5px;font-weight:500}
+  .mobile-nav a.on{background:var(--brand-soft);color:var(--brand)}
+  main{padding:16px 14px 50px}
+  .kpis{grid-template-columns:1fr 1fr}
+  .two,.maps{grid-template-columns:1fr}
+  .form{grid-template-columns:1fr}
+  .card table{display:block;overflow-x:auto}
+}
+</style>
+</head>
+<body class="locked">
+<div id="login"></div>
+<div class="mobile-nav" id="mnav"></div>
+<div class="app">
+  <aside>
+    <div class="logo"><div class="mark">IF</div><div><b data-t="brand"></b><small data-t="tagline"></small></div></div>
+    <nav id="nav"></nav>
+    <div class="side-foot">
+      <div id="userbox"></div>
+      <button class="btn" data-act="lang" id="langBtn"></button>
+      <button class="btn ghost sm danger" data-act="reset" data-t="reset"></button>
+    </div>
+  </aside>
+  <main id="main"></main>
+</div>
+<div class="modal-bg" id="modalBg"><div class="modal" id="modal"></div></div>
+<div class="toast" id="toast"></div>
+<input type="file" id="fileIn" accept=".csv,text/csv" hidden>
+
+<script>
+/* ================= i18n ================= */
+const T={
+ ar:{brand:"عين إسماعيلية فريش",tagline:"مخزون تلاجات التخزين",reset:"إعادة الداتا الوهمية",
+  dashboard:"لوحة التحكم",stock:"المخزون",fridges:"تلاجات التخزين",map:"الخريطة",products:"المنتجات",moves:"الحركات",import:"استيراد CSV",
+  dashSub:"نظرة سريعة على كل التلاجات والصلاحية",totalUnits:"إجمالي الوحدات",inFridges:"في {n} تلاجة",expSoon:"قرّب يخلص",expired:"منتهي",batches:"دفعة",withinDays:"خلال {n} يوم",
+  activeFridges:"التلاجات النشطة",areas:"إسماعيلية والغردقة",stockByProduct:"المخزون حسب المنتج",expWeek:"بينتهي قريب",byArea:"حسب المنطقة",
+  ism:"إسماعيلية",hrg:"الغردقة",allAreas:"كل المناطق",allFridges:"كل التلاجات",allProducts:"كل المنتجات",allStatus:"كل الحالات",
+  ok:"سليم",warn:"قرّب يخلص",bad:"منتهي",fridge:"التلاجة",product:"المنتج",size:"الحجم",qty:"الكمية",prod:"تاريخ الإنتاج",exp:"تاريخ الانتهاء",entry:"تاريخ الدخول",status:"الحالة",daysLeft:"باقي",
+  dLeft:"{n} يوم",dAgo:"منتهي من {n} يوم",today:"بينتهي النهارده",
+  addStock:"إدخال بضاعة",withdraw:"سحب / بيع",export:"تصدير CSV",addFridge:"إضافة تلاجة",addProduct:"إضافة منتج",
+  owner:"صاحب التلاجة",ownerEn:"الاسم بالإنجليزي",shop:"اسم التلاجة / المخزن",shopEn:"اسم التلاجة بالإنجليزي",cap:"السعة المخصصة لينا (طن)",load:"الحمولة الحالية",ton:"طن",unit:"وحدة القياس",customSize:"حجم تاني",approx:"تقريبي",phone:"التليفون",address:"العنوان",area:"المنطقة",lat:"خط العرض",lng:"خط الطول",code:"الكود",
+  save:"حفظ",cancel:"إلغاء",close:"إغلاق",units:"وحدة",products_n:"منتج",openMaps:"افتح في جوجل ماب",
+  stockSub:"كل دفعة بتاريخها وصلاحيتها",fridgesSub:"تلاجات التخزين (المخازن المبردة) وأصحابها والحمولة",mapSub:"مكان كل تلاجة ولونها حسب أسوأ صلاحية فيها",productsSub:"المنتجات والأحجام",movesSub:"سجل كل دخول وخروج",importSub:"ارفع شيت إكسل محفوظ CSV",
+  schematic:"خريطة توضيحية — اضغط على أي تلاجة",clickPin:"اضغط على أي نقطة عشان تشوف التفاصيل",
+  type:"النوع",t_in:"دخول",t_sale:"بيع",t_return:"مرتجع للمصنع",t_expired:"إعدام منتهي",note:"ملاحظة",date:"التاريخ",batch:"الدفعة",available:"متاح",
+  nameAr:"الاسم بالعربي",nameEn:"الاسم بالإنجليزي",sizes:"الأحجام",sizesHint:"اختار حجم أو أكتر",totalStock:"إجمالي المخزون",
+  dropHere:"اسحب ملف CSV هنا أو اضغط للاختيار",orPaste:"أو الصق المحتوى هنا",preview:"معاينة",template:"تحميل نموذج CSV",
+  rows:"صف",valid:"سليم",invalid:"فيه مشكلة",importN:"استيراد {n} صف",imported:"تم استيراد {n} صف",
+  e_fridge:"التلاجة مش موجودة",e_sku:"المنتج/الحجم مش موجود",e_qty:"الكمية غلط",e_date:"تاريخ غلط",e_order:"الانتهاء قبل الإنتاج",
+  csvFormat:"شكل الملف",csvCols:"الأعمدة: fridge (كود أو اسم التلاجة)، sku أو (product + size)، qty، production_date، expiry_date، و lot اختياري",
+  saved:"تم الحفظ",withdrawn:"تم تسجيل الحركة",auto:"سحب أوتوماتيك",manual:"اختيار دفعة يدوي",policy:"ترتيب السحب",fefoL:"FEFO — الأقرب انتهاءً يخرج الأول",fifoL:"FIFO — الأقدم دخولاً يخرج الأول",lot:"رقم اللوط",lotTrace:"تتبع اللوط",weight:"الوزن",kgU:"كجم",pack:"عبوة",byUnits:"بالعبوة",byKg:"بالكيلو",goesFirst:"عليها الدور",finished:"هتخلص",remainAfter:"الباقي بعده",take:"هيتسحب",shortBy:"المتاح {n} بس",notMultiple:"لازم الكمية تكون مضاعف {n}",outOfOrder:"فيه دفعة أقدم لازم تخرج الأول:",reasonReq:"اكتب السبب عشان تسحب من دفعة مش عليها الدور",reason:"السبب / ملاحظة",lifeUsed:"عمر الصلاحية",inN:"موجود في {n} تلاجة",entered:"دخل",current:"الحالي",eqU:"= {u} عبوة · {w}",plan:"خطة السحب",offOrder:"خارج الترتيب",lotHint:"سيبه فاضي ويتعمل أوتوماتيك",noStock:"مفيش مخزون",
+  copyCsv:"نسخ",copied:"اتنسخ",exportFallback:"التحميل مش متاح هنا — انسخ المحتوى:",confirmReset:"متأكد؟ هيترجع كل حاجة للداتا الوهمية الأصلية.",yes:"أيوه",
+  warnDays:"تنبيه قبل الانتهاء بـ",empty:"مفيش بيانات",fridgeStock:"بضاعة التلاجة",search:"بحث…",worst:"أسوأ حالة",lastMoves:"آخر الحركات",
+  overQty:"الكمية أكبر من المتاح",required:"كمّل البيانات المطلوبة",
+  login:"تسجيل الدخول",loginSub:"ادخل بحسابك عشان تكمّل",username:"اسم المستخدم",password:"كلمة المرور",signin:"دخول",badLogin:"اسم المستخدم أو كلمة المرور غلط",demoAcc:"حسابات تجريبية — اضغط للدخول",demo:"نسخة تجريبية",logout:"تسجيل خروج",
+  r_admin:"مدير",r_store:"أمين مخزن",r_viewer:"مندوب (عرض فقط)",rd_admin:"كل الصلاحيات + الإعدادات وسجل النشاط",rd_store:"إدخال وسحب واستيراد",rd_viewer:"يشوف المخزون والتلاجات بس",
+  noPerm:"مش مسموح لحسابك بالإجراء ده",activity:"سجل النشاط",activitySub:"مين عمل إيه وامتى",by:"بواسطة",allUsers:"كل المستخدمين",
+  a_login:"سجّل دخول",a_logout:"سجّل خروج",a_in:"دخّل {q} × {p} ({w}) في {f}",a_out:"{ty}: {q} × {p} ({w}) من {f}",a_import:"استورد {n} صف من ملف CSV",a_addFridge:"أضاف تلاجة جديدة {c}",a_addProduct:"أضاف منتج جديد {c}",a_policy:"غيّر ترتيب السحب إلى {v}",a_warnDays:"غيّر مدة التنبيه إلى {v} يوم",a_reset:"رجّع الداتا الوهمية"
+ },
+ en:{brand:"Ismailia Fresh",tagline:"Cold Storage Inventory",reset:"Reset demo data",
+  dashboard:"Dashboard",stock:"Stock",fridges:"Cold stores",map:"Map",products:"Products",moves:"Movements",import:"CSV Import",
+  dashSub:"Quick view of all fridges and expiry",totalUnits:"Total units",inFridges:"in {n} fridges",expSoon:"Expiring soon",expired:"Expired",batches:"batches",withinDays:"within {n} days",
+  activeFridges:"Active fridges",areas:"Ismailia & Hurghada",stockByProduct:"Stock by product",expWeek:"Expiring soon",byArea:"By area",
+  ism:"Ismailia",hrg:"Hurghada",allAreas:"All areas",allFridges:"All fridges",allProducts:"All products",allStatus:"All statuses",
+  ok:"Good",warn:"Expiring soon",bad:"Expired",fridge:"Fridge",product:"Product",size:"Size",qty:"Qty",prod:"Production",exp:"Expiry",entry:"Entry date",status:"Status",daysLeft:"Left",
+  dLeft:"{n} days",dLeft1:"1 day",dAgo:"expired {n}d ago",today:"expires today",
+  addStock:"Add stock",withdraw:"Withdraw / Sell",export:"Export CSV",addFridge:"Add fridge",addProduct:"Add product",
+  owner:"Owner (Arabic)",ownerEn:"Owner (English)",shop:"Cold store name (Arabic)",shopEn:"Cold store name (English)",cap:"Space allocated to us (tons)",load:"Current load",ton:"ton",unit:"Unit",customSize:"Other size",approx:"approx.",phone:"Phone",address:"Address",area:"Area",lat:"Latitude",lng:"Longitude",code:"Code",
+  save:"Save",cancel:"Cancel",close:"Close",units:"units",products_n:"products",openMaps:"Open in Google Maps",
+  stockSub:"Every batch with its dates and expiry",fridgesSub:"Cold storage facilities, their owners and load",mapSub:"Where each fridge is, colored by its worst expiry",productsSub:"Products and sizes",movesSub:"Log of every in and out",importSub:"Upload an Excel sheet saved as CSV",
+  schematic:"Schematic map — click any fridge",clickPin:"Click a pin to see details",
+  type:"Type",t_in:"Stock in",t_sale:"Sale",t_return:"Return to factory",t_expired:"Expired removal",note:"Note",date:"Date",batch:"Batch",available:"available",
+  nameAr:"Name (Arabic)",nameEn:"Name (English)",sizes:"Sizes",sizesHint:"Pick one or more",totalStock:"Total stock",
+  dropHere:"Drop a CSV file here or click to choose",orPaste:"Or paste the content here",preview:"Preview",template:"Download CSV template",
+  rows:"rows",valid:"valid",invalid:"with issues",importN:"Import {n} rows",imported:"Imported {n} rows",
+  e_fridge:"Fridge not found",e_sku:"Product/size not found",e_qty:"Invalid qty",e_date:"Invalid date",e_order:"Expiry before production",
+  csvFormat:"File format",csvCols:"Columns: fridge (code or name), sku or (product + size), qty, production_date, expiry_date, optional lot",
+  saved:"Saved",withdrawn:"Movement recorded",auto:"Auto withdraw",manual:"Pick batch manually",policy:"Withdrawal order",fefoL:"FEFO — earliest expiry goes first",fifoL:"FIFO — first in goes first",lot:"Lot no.",lotTrace:"Lot trace",weight:"Weight",kgU:"kg",pack:"pack",byUnits:"Packs",byKg:"Kilograms",goesFirst:"next out",finished:"emptied",remainAfter:"Left after",take:"Take",shortBy:"Only {n} available",notMultiple:"Quantity must be a multiple of {n}",outOfOrder:"Older batches should go out first:",reasonReq:"Enter a reason to take from a batch out of order",reason:"Reason / note",lifeUsed:"Shelf life used",inN:"in {n} cold stores",entered:"Entered",current:"Current",eqU:"= {u} packs · {w}",plan:"Withdrawal plan",offOrder:"Out of order",lotHint:"Leave empty to auto-generate",noStock:"No stock",
+  copyCsv:"Copy",copied:"Copied",exportFallback:"Download isn't available here — copy the content:",confirmReset:"Sure? Everything returns to the original demo data.",yes:"Yes",
+  warnDays:"Warn before expiry (days)",empty:"No data",fridgeStock:"Fridge stock",search:"Search…",worst:"Worst status",lastMoves:"Latest movements",
+  overQty:"Quantity exceeds available",required:"Fill in the required fields",
+  login:"Sign in",loginSub:"Sign in to your account to continue",username:"Username",password:"Password",signin:"Sign in",badLogin:"Wrong username or password",demoAcc:"Demo accounts — click to sign in",demo:"Demo version",logout:"Sign out",
+  r_admin:"Admin",r_store:"Storekeeper",r_viewer:"Field rep (view only)",rd_admin:"Full access + settings and activity log",rd_store:"Stock in, withdraw, import",rd_viewer:"Views stock and cold stores only",
+  noPerm:"Your account isn't allowed to do this",activity:"Activity log",activitySub:"Who did what, and when",by:"By",allUsers:"All users",
+  a_login:"signed in",a_logout:"signed out",a_in:"stocked {q} × {p} ({w}) into {f}",a_out:"{ty}: {q} × {p} ({w}) from {f}",a_import:"imported {n} rows from CSV",a_addFridge:"added cold store {c}",a_addProduct:"added product {c}",a_policy:"changed withdrawal order to {v}",a_warnDays:"changed expiry warning to {v} days",a_reset:"reset the demo data"
+ }
+};
+let lang="ar";
+const t=(k,v={})=>(T[lang][k]??k).replace(/\{(\w+)\}/g,(_,x)=>v[x]);
+const L=(o,b)=>o[b+(lang==="ar"?"Ar":"En")]||o[b+"Ar"]||o[b+"En"]||"";
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmt=n=>Number(n).toLocaleString(lang==="ar"?"ar-EG":"en-US");
+
+/* ================= Units ================= */
+const UNITS={kg:{ar:"كجم",en:"kg",toKg:1,presets:[1,2,3,5,10,20,25,50]},L:{ar:"لتر",en:"L",toKg:1,presets:[0.25,0.5,1,1.5,2,5,10,20]},T:{ar:"طن",en:"ton",toKg:1000,presets:[0.5,1,2,5,10,20]}};
+function mkVariant(code,k,u){const n=+k;return {sku:`${code}-${String(n).replace(".","_")}${u==="kg"?"":u}`,size:n,unit:u,sizeAr:`${n.toLocaleString("ar-EG")} ${UNITS[u].ar}`,sizeEn:`${n} ${UNITS[u].en}`}}
+/* ================= Store ================= */
+const KEY="ifresh-demo-v4";
+const DAY=86400000;
+const todayISO=()=>new Date().toISOString().slice(0,10);
+const addDays=(iso,n)=>new Date(new Date(iso).getTime()+n*DAY).toISOString().slice(0,10);
+const daysBetween=(a,b)=>Math.round((new Date(b)-new Date(a))/DAY);
+let S;
+
+function seed(){
+  let r=42;const rnd=()=>(r=(r*16807)%2147483647)/2147483647;const pick=a=>a[Math.floor(rnd()*a.length)];
+  const products=[
+    {code:"MNG",nameAr:"عصير مانجا",nameEn:"Mango Juice",color:"#f29f05"},
+    {code:"GUA",nameAr:"عصير جوافة",nameEn:"Guava Juice",color:"#e2617a"},
+    {code:"MND",nameAr:"عصير يوسفي",nameEn:"Mandarin Juice",color:"#f07a1a"},
+    {code:"KIW",nameAr:"عصير كيوي",nameEn:"Kiwi Juice",color:"#7cae3a"},
+    {code:"STR",nameAr:"عصير فراولة",nameEn:"Strawberry Juice",color:"#c8324a"},
+    {code:"ORG",nameAr:"عصير برتقال",nameEn:"Orange Juice",color:"#f5b72e"}
+  ].map(p=>({...p,variants:[3,5,10].map(k=>mkVariant(p.code,k,"kg"))}));
+  const F=(code,area,ownerAr,ownerEn,shopAr,shopEn,addrAr,addrEn,phone,lat,lng,cap)=>({code,area,ownerAr,ownerEn,shopAr,shopEn,addrAr,addrEn,phone,lat,lng,cap});
+  const fridges=[
+    F("ISM-01","ism","الحاج محمد عبدالله","Hajj Mohamed Abdallah","تلاجة النور للتبريد","Al-Nour Cold Storage","المنطقة الصناعية الأولى","Industrial Zone 1","0100 123 4501",30.6200,32.2500,20),
+    F("ISM-02","ism","الحاج محمود السيد","Hajj Mahmoud El-Sayed","تلاجة السلام","El-Salam Cold Storage","أبو صوير","Abu Suwir","0111 223 4502",30.5600,32.1200,15),
+    F("ISM-03","ism","أحمد فتحي","Ahmed Fathy","تلاجة الفردوس","El-Ferdous Cold Storage","طريق الإسماعيلية الصحراوي","Ismailia Desert Rd.","0122 334 4503",30.5900,32.1700,25),
+    F("ISM-04","ism","الحاج سعيد إبراهيم","Hajj Saeed Ibrahim","تلاجة البحيرة","El-Bohaira Cold Storage","نفيشة","Nefisha","0100 445 4504",30.5650,32.2600,10),
+    F("ISM-05","ism","مصطفى حسن","Mostafa Hassan","مخازن حسن المبردة","Hassan Cold Stores","المنطقة الصناعية الثانية","Industrial Zone 2","0155 556 4505",30.6350,32.2300,30),
+    F("ISM-06","ism","الحاج علي رمضان","Hajj Ali Ramadan","تلاجة رمضان","Ramadan Cold Storage","المحسمة","El-Mahsama","0109 667 4506",30.6000,32.0900,12),
+    F("HRG-01","hrg","الحاج كريم يوسف","Hajj Karim Youssef","تلاجة يوسف للتبريد","Youssef Cold Storage","المنطقة الصناعية","Industrial Zone","0101 778 4601",27.2100,33.7700,15),
+    F("HRG-02","hrg","الحاج عادل منصور","Hajj Adel Mansour","تلاجة منصور","Mansour Cold Storage","طريق الغردقة سفاجا","Hurghada–Safaga Rd.","0114 889 4602",27.1300,33.8100,20),
+    F("HRG-03","hrg","محمود عبدالرحمن","Mahmoud Abdelrahman","مخازن الأمل المبردة","El-Amal Cold Stores","الأحياء","El-Ahyaa","0127 990 4603",27.2900,33.7400,10),
+    F("HRG-04","hrg","هاني شوقي","Hany Shawky","تلاجة الكوثر","El-Kawther Cold Storage","الكوثر","El-Kawther","0150 101 4604",27.1950,33.8100,12),
+    F("HRG-05","hrg","الحاج ياسر فوزي","Hajj Yasser Fawzy","تلاجة فوزي","Fawzy Cold Storage","طريق الغردقة الصحراوي","Hurghada Desert Rd.","0106 212 4605",27.2300,33.7200,25)
+  ];
+  const today=todayISO();const batches=[],moves=[];let bid=1,mid=1;
+  const lotOf=(code,prod)=>`${code}-${prod.slice(2).replace(/-/g,"")}`;
+  const runs={};products.forEach(p=>{runs[p.code]=[];for(let k=0;k<5;k++){const ago=3+Math.floor(rnd()*100);const prod=addDays(today,-ago);runs[p.code].push({prod,exp:addDays(prod,pick([90,90,120])),lot:lotOf(p.code,prod)})}});
+  const addB=(f,v,run,q,sold)=>{const id="B"+String(bid++).padStart(4,"0");const age=daysBetween(run.prod,today);
+    const entry=addDays(run.prod,Math.min(age,1+Math.floor(rnd()*4)));
+    batches.push({id,fridge:f.code,sku:v.sku,qty:q-sold,prod:run.prod,exp:run.exp,entry,lot:run.lot});
+    const NOW=new Date();const hm=d=>{const h=d===today?Math.min(16,Math.max(0,NOW.getHours()-1)):8+Math.floor(rnd()*9);return `T${String(Math.min(h,8+Math.floor(rnd()*9))).padStart(2,"0")}:${String(Math.floor(rnd()*60)).padStart(2,"0")}:00`};
+    moves.push({id:mid++,date:entry,ts:entry+hm(entry),user:"ahmed",type:"in",fridge:f.code,sku:v.sku,batch:id,qty:q,note:""});
+    if(sold){const sd=addDays(entry,Math.min(daysBetween(entry,today),3+Math.floor(rnd()*10)));moves.push({id:mid++,date:sd,ts:sd+hm(sd),user:rnd()<.75?"ahmed":"admin",type:"sale",fridge:f.code,sku:v.sku,batch:id,qty:sold,note:""})}};
+  // the exact scenario: same product entering the same cold store 3 times (10 × 5kg = 50kg each)
+  const ism1=fridges[0],gua5=products[1].variants[1];
+  [62,33,6].forEach((ago,i)=>{const prod=addDays(today,-ago);addB(ism1,gua5,{prod,exp:addDays(prod,90),lot:lotOf("GUA",prod)},10,i===0?4:0)});
+  fridges.forEach(f=>{
+    const n=4+Math.floor(rnd()*4);
+    for(let i=0;i<n;i++){
+      const p=pick(products),v=pick(p.variants),run=pick(runs[p.code]);
+      const q=(v.size===3?80:v.size===5?50:25)+Math.floor(rnd()*(v.size===3?120:v.size===5?90:50));
+      addB(f,v,run,q,Math.floor(rnd()*q*0.4));
+    }
+  });
+  moves.sort((a,b)=>a.ts.localeCompare(b.ts));
+  const log=[{ts:addDays(today,-40)+"T09:12:00",user:"admin",act:"policy",p:{v:"FEFO"}},{ts:addDays(today,-21)+"T11:40:00",user:"admin",act:"addFridge",p:{c:"HRG-05"}},{ts:addDays(today,-1)+"T08:55:00",user:"mahmoud",act:"login",p:{}}];
+  return {products,fridges,batches,moves,log,warnDays:14,policy:"fefo",nb:bid,nm:mid};
+}
+function load(){try{const s=localStorage.getItem(KEY);if(s){S=JSON.parse(s);return}}catch(e){}S=seed()}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+try{lang=localStorage.getItem(KEY+"-lang")||"ar"}catch(e){}
+load();
+
+/* ================= Helpers ================= */
+const skuMap=()=>{const m={};S.products.forEach(p=>p.variants.forEach(v=>m[v.sku]={p,v}));return m};
+const fridgeBy=c=>S.fridges.find(f=>f.code===c);
+function status(exp){const d=daysBetween(todayISO(),exp);return d<0?"bad":d<=S.warnDays?"warn":"ok"}
+function badge(exp){const d=daysBetween(todayISO(),exp),s=status(exp);
+  const txt=d<0?t("dAgo",{n:fmt(-d)}):d===0?t("today"):(d===1&&lang==="en"?t("dLeft1"):t("dLeft",{n:fmt(d)}));
+  return `<span class="badge b-${s}"><span class="dot" style="background:currentColor"></span>${txt}</span>`}
+const live=()=>S.batches.filter(b=>b.qty>0);
+const rank={ok:0,warn:1,bad:2};
+function worstOf(code){let w=null;live().filter(b=>b.fridge===code).forEach(b=>{const s=status(b.exp);if(w===null||rank[s]>rank[w])w=s});return w}
+function kgOf(sku,qty){const x=skuMap()[sku];if(!x)return 0;const v=x.v;return (v.size||0)*((UNITS[v.unit||"kg"]||UNITS.kg).toKg)*qty}
+const tons=kg=>(kg/1000).toLocaleString(lang==="ar"?"ar-EG":"en-US",{maximumFractionDigits:1});
+function loadKg(code){return live().filter(b=>b.fridge===code).reduce((s,b)=>s+kgOf(b.sku,b.qty),0)}
+function capBar(f){const kg=loadKg(f.code),cap=(f.cap||0)*1000,pct=cap?Math.min(100,kg/cap*100):0;const col=pct>90?"var(--bad)":pct>70?"var(--warn)":"var(--brand)";
+  return `<div style="margin-top:12px;font-size:12.5px"><div class="row" style="justify-content:space-between"><span class="muted">${t("load")}</span><span><b>${tons(kg)}</b> / ${f.cap?fmt(f.cap):"—"} ${t("ton")} ${cap?`· ${fmt(Math.round(pct))}%`:""}</span></div>
+  <div style="height:8px;background:var(--bg);border-radius:4px;margin-top:5px;overflow:hidden"><i style="display:block;height:100%;width:${pct}%;background:${col}"></i></div></div>`}
+function orderB(list){const k=S.policy==="fifo"?["entry","exp"]:["exp","entry"];return list.slice().sort((a,b)=>a[k[0]].localeCompare(b[k[0]])||a[k[1]].localeCompare(b[k[1]])||a.id.localeCompare(b.id))}
+const wt=kg=>kg>=1000?`${tons(kg)} ${t("ton")}`:`${fmt(Math.round(kg*10)/10)} ${t("kgU")}`;
+const packKg=sku=>kgOf(sku,1);
+function lifePct(b){const tot=daysBetween(b.prod,b.exp)||1;return Math.max(0,Math.min(100,daysBetween(b.prod,todayISO())/tot*100))}
+function lifeBar(b){const p=lifePct(b),s=status(b.exp);return `<div title="${t("lifeUsed")}: ${fmt(Math.round(p))}%" style="width:110px;height:8px;background:var(--bg);border-radius:4px;overflow:hidden;display:inline-block;vertical-align:middle"><i style="display:block;height:100%;width:${p}%;background:${statusColor(s)}"></i></div>`}
+function allocate(fr,sku,units){const bs=orderB(live().filter(b=>b.fridge===fr&&b.sku===sku));let need=units;const out=[];for(const b of bs){if(need<=0)break;const take=Math.min(b.qty,need);out.push({b,take});need-=take}return {out,short:Math.max(0,need),avail:bs.reduce((s,b)=>s+b.qty,0)}}
+function olderOf(b){const o=orderB(live().filter(x=>x.fridge===b.fridge&&x.sku===b.sku));const i=o.findIndex(x=>x.id===b.id);return i>0?o.slice(0,i):[]}
+const lotChip=l=>l?`<a href="#" class="chip" data-act="lot" data-lot="${esc(l)}" dir="ltr" style="text-decoration:none">${esc(l)}</a>`:"";
+const autoLot=(sku,prod)=>`${sku.split("-")[0]}-${String(prod).slice(2).replace(/-/g,"")}`;
+const statusColor=s=>s==="bad"?"var(--bad)":s==="warn"?"var(--warn)":s==="ok"?"var(--ok)":"#9aa39f";
+const prodName=sku=>{const x=skuMap()[sku];return x?L(x.p,"name"):sku};
+const sizeName=sku=>{const x=skuMap()[sku];return x?L(x.v,"size"):""};
+function toast(msg){const el=document.getElementById("toast");el.textContent=msg;el.classList.add("show");clearTimeout(toast.h);toast.h=setTimeout(()=>el.classList.remove("show"),2200)}
+
+/* ================= Users / roles / activity ================= */
+const USERS=[
+  {u:"admin",p:"1234",role:"admin",nameAr:"المدير العام",nameEn:"General Manager",color:"#1f6f5c",iniAr:"مع",iniEn:"GM"},
+  {u:"ahmed",p:"1234",role:"store",nameAr:"أحمد — أمين المخزن",nameEn:"Ahmed — Storekeeper",color:"#c47a12",iniAr:"أ",iniEn:"A"},
+  {u:"mahmoud",p:"1234",role:"viewer",nameAr:"محمود — مندوب",nameEn:"Mahmoud — Field Rep",color:"#4a6fa5",iniAr:"م",iniEn:"M"}];
+const userBy=u=>USERS.find(x=>x.u===u)||{u,nameAr:u,nameEn:u,color:"#888",role:"viewer"};
+let SES=null;try{SES=JSON.parse(localStorage.getItem(KEY+"-ses")||"null")}catch(e){}
+const role=()=>SES?userBy(SES.u).role:null;
+const PERMS={admin:"*",store:["addStock","withdraw","submit","pickFile","previewPaste","doImport"],viewer:[]};
+const GUARDED=["addStock","withdraw","addFridge","addProduct","reset","doReset","pickFile","previewPaste","doImport","submit"];
+function can(act){const r=role();if(!r)return false;if(PERMS[r]==="*")return true;return !GUARDED.includes(act)||PERMS[r].includes(act)}
+const initials=n=>String(n).replace(/^(م\.|Eng\.)\s*/,"").trim().split(/\s+/)[0].slice(0,2);
+const avatar=u=>{const x=userBy(u);return `<span class="av" style="background:${x.color}">${esc(L(x,"ini")||initials(L(x,"name")))}</span>`};
+function logAct(act,p={}){if(!S.log)S.log=[];S.log.push({ts:new Date().toISOString(),user:SES?SES.u:"system",act,p})}
+const fmtTs=ts=>{try{return new Date(ts).toLocaleString(lang==="ar"?"ar-EG":"en-GB",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}catch(e){return ts}};
+const nowTs=()=>new Date().toISOString();
+
+/* ================= Downloads / export ================= */
+let dl=null;
+try{window.claude&&window.claude.use&&window.claude.use("downloads").then(x=>{dl=x}).catch(()=>{})}catch(e){}
+const csvCell=v=>{v=String(v??"");return /[",\n]/.test(v)?`"${v.replace(/"/g,'""')}"`:v};
+const toCSV=rows=>rows.map(r=>r.map(csvCell).join(",")).join("\n");
+async function offerFile(name,text){
+  const data="﻿"+text; // BOM so Excel reads Arabic correctly
+  if(dl){try{await dl.save({filename:name,data});return}catch(e){if(e&&e.code==="declined")return}}
+  if(!window.claude){try{const url=URL.createObjectURL(new Blob([data],{type:"text/csv;charset=utf-8"}));const a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);return}catch(e){}}
+  modal(`<h2>${esc(name)}</h2><p class="muted">${t("exportFallback")}</p><textarea id="cpy" style="width:100%;height:240px;direction:ltr;font-size:12px">${esc(text)}</textarea>
+  <div class="form-foot"><button class="btn" data-act="closeModal">${t("close")}</button><button class="btn pri" data-act="copyTa">${t("copyCsv")}</button></div>`)
+}
+
+/* ================= Router ================= */
+const ICONS={
+ dashboard:'<path d="M3 13h8V3H3zM13 21h8V11h-8zM3 21h8v-6H3zM13 3v6h8V3z"/>',
+ stock:'<path d="M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8M12 13v8"/>',
+ fridges:'<rect x="5" y="2" width="14" height="20" rx="2"/><path d="M5 9h14M9 5v2M9 12v4"/>',
+ map:'<path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>',
+ products:'<path d="M8 2h8l-1 4H9zM9 6h6l2 4v11a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V10z"/>',
+ moves:'<path d="M7 7h13l-3-3M17 17H4l3 3"/>',
+ import:'<path d="M12 3v12M7 10l5 5 5-5M4 21h16"/>',
+ activity:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'
+};
+const VIEWS_ALL=["dashboard","stock","fridges","map","products","moves","import","activity"];
+const viewsFor=()=>VIEWS_ALL.filter(v=>!(v==="import"&&role()==="viewer")&&!(v==="activity"&&role()!=="admin"));
+let VIEWS=VIEWS_ALL;
+let filt={area:"",fridge:"",product:"",status:"",q:""};
+let mapSel=null;
+let csvRows=null;
+function route(){const h=location.hash.slice(1);return VIEWS.includes(h)?h:"dashboard"}
+function doLogin(u,pw){const x=USERS.find(k=>k.u===String(u).trim().toLowerCase()&&k.p===pw);
+  if(!x){const er=document.getElementById("lErr");if(er)er.textContent=t("badLogin");return}
+  SES={u:x.u};try{localStorage.setItem(KEY+"-ses",JSON.stringify(SES))}catch(e){}logAct("login");persist();
+  filt={area:"",fridge:"",product:"",status:"",q:""};if(!viewsFor().includes(location.hash.slice(1)))location.hash="dashboard";render()}
+function renderLogin(){
+  document.getElementById("login").innerHTML=`<div class="lcard"><div class="mark">IF</div><h1>${t("brand")}</h1><div class="sub">${t("tagline")}</div>
+   <div style="text-align:center;margin-top:8px"><span class="demo-tag">${t("demo")}</span></div>
+   <form id="loginForm"><b style="font-size:15px">${t("login")}</b><span class="muted" style="font-size:13px;margin-top:-6px">${t("loginSub")}</span>
+    <input type="text" id="lu" placeholder="${t("username")}" autocomplete="username" dir="ltr"><input type="password" id="lp" placeholder="${t("password")}" autocomplete="current-password" dir="ltr">
+    <div class="err" id="lErr"></div><button class="btn pri" type="submit" style="justify-content:center">${t("signin")}</button></form>
+   <div style="margin-top:20px;font-size:12.5px;color:var(--muted);margin-bottom:8px">${t("demoAcc")}</div>
+   <div style="display:flex;flex-direction:column;gap:8px">${USERS.map(x=>`<button class="acc" data-act="demoLogin" data-u="${x.u}">${avatar(x.u)}<span style="flex:1"><b style="font-size:13.5px">${esc(L(x,"name"))}</b><br><small class="muted">${t("r_"+x.role)} · ${t("rd_"+x.role)}</small></span><span class="muted" dir="ltr" style="font-size:11.5px">${x.u} / 1234</span></button>`).join("")}</div>
+   <div style="text-align:center;margin-top:16px"><button class="btn ghost sm" data-act="lang">${lang==="ar"?"English":"العربية"}</button></div></div>`;
+  document.getElementById("loginForm").addEventListener("submit",e=>{e.preventDefault();doLogin(document.getElementById("lu").value,document.getElementById("lp").value)})}
+function render(){
+  document.documentElement.lang=lang;document.documentElement.dir=lang==="ar"?"rtl":"ltr";
+  if(!SES){document.body.className="locked";renderLogin();return}
+  VIEWS=viewsFor();document.body.className="r-"+role();
+  document.querySelectorAll("[data-t]").forEach(el=>el.textContent=t(el.dataset.t));
+  document.getElementById("langBtn").textContent=lang==="ar"?"English":"العربية";
+  const me=userBy(SES.u);
+  document.getElementById("userbox").innerHTML=`<div class="userbox">${avatar(me.u)}<div style="flex:1;min-width:0"><b>${esc(L(me,"name"))}</b><small>${t("r_"+me.role)}</small></div><button class="btn sm ghost" data-act="logout" title="${t("logout")}">⎋</button></div>`;
+  const v=route();
+  const links=VIEWS.map(k=>`<a href="#${k}" class="${k===v?"on":""}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICONS[k]}</svg>${t(k)}</a>`).join("");
+  document.getElementById("nav").innerHTML=links;
+  document.getElementById("mnav").innerHTML=VIEWS.map(k=>`<a href="#${k}" class="${k===v?"on":""}">${t(k)}</a>`).join("")+`<a href="#" data-act="lang">${lang==="ar"?"EN":"ع"}</a><a href="#" data-act="logout">⎋ ${t("logout")}</a>`;
+  document.getElementById("main").innerHTML=({dashboard:vDash,stock:vStock,fridges:vFridges,map:vMap,products:vProducts,moves:vMoves,import:vImport,activity:vActivity})[v]();
+  if(v==="map")initRealMaps();
+}
+const header=(title,sub,actions="")=>`<div class="top"><div><h1>${title}</h1><div class="sub">${sub}</div></div><div class="row">${actions}</div></div>`;
+
+/* ================= Views ================= */
+function vDash(){
+  const lb=live();const total=lb.reduce((s,b)=>s+b.qty,0);
+  const warnB=lb.filter(b=>status(b.exp)==="warn"),badB=lb.filter(b=>status(b.exp)==="bad");
+  const activeF=new Set(lb.map(b=>b.fridge)).size;
+  // stock by product, stacked by status
+  const byP=S.products.map(p=>{const o={p,ok:0,warn:0,bad:0};lb.forEach(b=>{if(b.sku.startsWith(p.code+"-"))o[status(b.exp)]+=b.qty});o.t=o.ok+o.warn+o.bad;return o}).sort((a,b)=>b.t-a.t);
+  const mx=Math.max(1,...byP.map(x=>x.t));
+  const bars=byP.map(x=>`<div class="bar"><span>${esc(L(x.p,"name").replace(/^عصير /,"").replace(/ Juice$/,""))}</span><div class="track" title="${t("ok")}: ${x.ok} · ${t("warn")}: ${x.warn} · ${t("bad")}: ${x.bad}">
+    <i style="width:${x.ok/mx*100}%;background:var(--ok)"></i><i style="width:${x.warn/mx*100}%;background:var(--warn)"></i><i style="width:${x.bad/mx*100}%;background:var(--bad)"></i></div><span class="n">${fmt(x.t)}</span></div>`).join("");
+  const soon=lb.filter(b=>status(b.exp)!=="ok").sort((a,b)=>a.exp.localeCompare(b.exp)).slice(0,8);
+  const area=["ism","hrg"].map(a=>{const fs=S.fridges.filter(f=>f.area===a).map(f=>f.code);const bs=lb.filter(b=>fs.includes(b.fridge));
+    return `<tr><td><b>${t(a)}</b></td><td class="num">${fmt(fs.length)}</td><td class="num">${fmt(bs.reduce((s,b)=>s+b.qty,0))}</td>
+    <td><span class="badge b-warn">${fmt(bs.filter(b=>status(b.exp)==="warn").length)}</span> <span class="badge b-bad">${fmt(bs.filter(b=>status(b.exp)==="bad").length)}</span></td></tr>`}).join("");
+  return header(t("dashboard"),t("dashSub"),`<button class="btn" data-act="withdraw">${t("withdraw")}</button><button class="btn pri" data-act="addStock">＋ ${t("addStock")}</button>`)+
+  `<div class="grid kpis">
+    <div class="card kpi"><div class="l">${t("totalUnits")}</div><div class="v">${fmt(total)}</div><div class="h">≈ ${tons(lb.reduce((s,b)=>s+kgOf(b.sku,b.qty),0))} ${t("ton")} · ${t("inFridges",{n:fmt(activeF)})}</div></div>
+    <div class="card kpi"><div class="l">${t("activeFridges")}</div><div class="v">${fmt(activeF)}</div><div class="h">${t("areas")}</div></div>
+    <div class="card kpi warn"><div class="l">${t("expSoon")}</div><div class="v">${fmt(warnB.length)}</div><div class="h">${t("batches")} · ${t("withinDays",{n:fmt(S.warnDays)})}</div></div>
+    <div class="card kpi bad"><div class="l">${t("expired")}</div><div class="v">${fmt(badB.length)}</div><div class="h">${fmt(badB.reduce((s,b)=>s+b.qty,0))} ${t("units")}</div></div>
+  </div>
+  <div class="grid two" style="margin-top:14px">
+    <div class="card"><h3>${t("stockByProduct")}</h3><div class="bars">${bars}</div>
+      <div class="legend"><span><i class="dot" style="background:var(--ok)"></i>${t("ok")}</span><span><i class="dot" style="background:var(--warn)"></i>${t("warn")}</span><span><i class="dot" style="background:var(--bad)"></i>${t("bad")}</span></div></div>
+    <div class="card"><h3>${t("byArea")}</h3><table><tr><th>${t("area")}</th><th>${t("fridges")}</th><th>${t("units")}</th><th>${t("warn")} / ${t("bad")}</th></tr>${area}</table>
+      <div class="row" style="margin-top:14px;font-size:13px"><span class="muted">${t("warnDays")}</span>
+      <select data-chg="warnDays">${[7,14,21,30].map(n=>`<option ${n===S.warnDays?"selected":""} value="${n}">${fmt(n)}</option>`).join("")}</select></div>
+      <div class="row" style="margin-top:10px;font-size:13px"><span class="muted">${t("policy")}</span>
+      <select data-chg="policy"><option value="fefo" ${S.policy!=="fifo"?"selected":""}>${t("fefoL")}</option><option value="fifo" ${S.policy==="fifo"?"selected":""}>${t("fifoL")}</option></select></div></div>
+  </div>
+  <div class="card" style="margin-top:14px"><h3>${t("expWeek")}</h3>${soon.length?`<div style="overflow:auto"><table><tr><th>${t("fridge")}</th><th>${t("product")}</th><th>${t("size")}</th><th>${t("qty")}</th><th>${t("exp")}</th><th>${t("status")}</th><th></th></tr>
+    ${soon.map(b=>{const f=fridgeBy(b.fridge);return `<tr><td><b>${esc(L(f,"owner"))}</b><div class="muted" style="font-size:12px">${esc(b.fridge)} · ${esc(L(f,"shop"))}</div></td><td>${esc(prodName(b.sku))}</td><td>${esc(sizeName(b.sku))}</td><td class="num">${fmt(b.qty)}</td><td class="num">${b.exp}</td><td>${badge(b.exp)}</td><td><button class="btn sm" data-act="withdraw" data-batch="${b.id}">${t("withdraw")}</button></td></tr>`}).join("")}</table></div>`:`<div class="empty">${t("empty")}</div>`}</div>`;
+}
+
+function filterSelects(withStatus=true){
+  const fs=S.fridges.filter(f=>!filt.area||f.area===filt.area);
+  return `<div class="filters">
+   <input type="search" placeholder="${t("search")}" value="${esc(filt.q)}" data-filt="q" style="min-width:160px">
+   <select data-filt="area"><option value="">${t("allAreas")}</option>${["ism","hrg"].map(a=>`<option value="${a}" ${filt.area===a?"selected":""}>${t(a)}</option>`).join("")}</select>
+   <select data-filt="fridge"><option value="">${t("allFridges")}</option>${fs.map(f=>`<option value="${f.code}" ${filt.fridge===f.code?"selected":""}>${f.code} · ${esc(L(f,"owner"))}</option>`).join("")}</select>
+   <select data-filt="product"><option value="">${t("allProducts")}</option>${S.products.map(p=>`<option value="${p.code}" ${filt.product===p.code?"selected":""}>${esc(L(p,"name"))}</option>`).join("")}</select>
+   ${withStatus?`<select data-filt="status"><option value="">${t("allStatus")}</option>${["ok","warn","bad"].map(s=>`<option value="${s}" ${filt.status===s?"selected":""}>${t(s)}</option>`).join("")}</select>`:""}
+  </div>`}
+function filteredBatches(){
+  const q=filt.q.trim().toLowerCase();
+  return live().filter(b=>{const f=fridgeBy(b.fridge);if(!f)return false;
+    if(filt.area&&f.area!==filt.area)return false;if(filt.fridge&&b.fridge!==filt.fridge)return false;
+    if(filt.product&&!b.sku.startsWith(filt.product+"-"))return false;if(filt.status&&status(b.exp)!==filt.status)return false;
+    if(q){const hay=[f.code,f.ownerAr,f.ownerEn,f.shopAr,f.shopEn,b.sku,prodName(b.sku),b.id,b.lot].join(" ").toLowerCase();if(!hay.includes(q))return false}
+    return true}).sort((a,b)=>a.exp.localeCompare(b.exp));
+}
+const fbOrdered=()=>orderB(filteredBatches());
+function vStock(){
+  const rows=fbOrdered();const tot=rows.reduce((s,b)=>s+b.qty,0),totKg=rows.reduce((s,b)=>s+kgOf(b.sku,b.qty),0);
+  return header(t("stock"),t("stockSub"),`<button class="btn" data-act="exportStock">⤓ ${t("export")}</button><button class="btn" data-act="withdraw">${t("withdraw")}</button><button class="btn pri" data-act="addStock">＋ ${t("addStock")}</button>`)+
+  filterSelects()+`<div class="sub" style="margin:-4px 0 10px">${fmt(rows.length)} ${t("batches")} · ${fmt(tot)} ${t("units")} · ${wt(totKg)} · ${t("policy")}: <b>${S.policy==="fifo"?"FIFO":"FEFO"}</b></div>`+
+  (rows.length?`<div class="tbl-wrap"><table><tr><th>${t("batch")}</th><th>${t("lot")}</th><th>${t("fridge")}</th><th>${t("product")}</th><th>${t("size")}</th><th>${t("qty")}</th><th>${t("weight")}</th><th>${t("entry")}</th><th>${t("exp")}</th><th>${t("lifeUsed")}</th><th>${t("status")}</th><th></th></tr>
+  ${rows.map(b=>{const f=fridgeBy(b.fridge);return `<tr><td class="muted num">${b.id}</td><td>${lotChip(b.lot)}</td><td><b>${esc(L(f,"owner"))}</b><div class="muted" style="font-size:12px">${f.code} · ${t(f.area)}</div></td><td>${esc(prodName(b.sku))}</td><td>${esc(sizeName(b.sku))}</td><td class="num"><b>${fmt(b.qty)}</b></td><td class="num">${wt(kgOf(b.sku,b.qty))}</td><td class="num">${b.entry}</td><td class="num">${b.exp}</td><td>${lifeBar(b)}</td><td>${badge(b.exp)}</td><td><button class="btn sm" data-act="withdraw" data-batch="${b.id}">${t("withdraw")}</button></td></tr>`}).join("")}</table></div>`:`<div class="card empty">${t("noStock")}</div>`);
+}
+
+function vFridges(){
+  const lb=live();
+  const cards=S.fridges.filter(f=>!filt.area||f.area===filt.area).map(f=>{
+    const bs=lb.filter(b=>b.fridge===f.code);const w=worstOf(f.code);
+    const prods=[...new Set(bs.map(b=>b.sku.split("-")[0]))].map(c=>S.products.find(p=>p.code===c)).filter(Boolean);
+    return `<div class="card fridge" data-act="fridgeDetail" data-code="${f.code}">
+      <div class="hd"><div><div class="code">${f.code} · ${t(f.area)}</div><div class="own">${esc(L(f,"owner"))}</div><div class="shop">${esc(L(f,"shop"))} — ${esc(L(f,"addr"))}</div></div>
+      ${w?`<span class="badge b-${w}">${t(w)}</span>`:`<span class="badge b-gray">${t("noStock")}</span>`}</div>
+      <div class="stats"><div><b>${fmt(bs.reduce((s,b)=>s+b.qty,0))}</b><span class="muted">${t("units")}</span></div><div><b>${fmt(bs.length)}</b><span class="muted">${t("batches")}</span></div><div><b>${fmt(prods.length)}</b><span class="muted">${t("products_n")}</span></div></div>
+      ${capBar(f)}
+      <div class="chips">${prods.map(p=>`<span class="chip" style="border-inline-start:3px solid ${p.color}">${esc(L(p,"name").replace(/^عصير /,""))}</span>`).join("")}</div>
+    </div>`}).join("");
+  return header(t("fridges"),t("fridgesSub"),`<select data-filt="area"><option value="">${t("allAreas")}</option>${["ism","hrg"].map(a=>`<option value="${a}" ${filt.area===a?"selected":""}>${t(a)}</option>`).join("")}</select><button class="btn pri" data-act="addFridge">＋ ${t("addFridge")}</button>`)+
+  `<div class="grid fridges">${cards}</div>`;
+}
+
+function mapSVG(area){
+  const fs=S.fridges.filter(f=>f.area===area);
+  const W=520,H=360,pad=0.012;
+  const lats=fs.map(f=>f.lat),lngs=fs.map(f=>f.lng);
+  let la0=Math.min(...lats)-pad,la1=Math.max(...lats)+pad,lo0=Math.min(...lngs)-pad,lo1=Math.max(...lngs)+pad;
+  // keep aspect
+  const sx=(lo1-lo0)/W,sy=(la1-la0)/H,s=Math.max(sx,sy);const cx=(lo0+lo1)/2,cy=(la0+la1)/2;
+  lo0=cx-s*W/2;lo1=cx+s*W/2;la0=cy-s*H/2;la1=cy+s*H/2;
+  const X=lng=>(lng-lo0)/(lo1-lo0)*(W-50)+8,Y=lat=>H-12-(lat-la0)/(la1-la0)*(H-40);
+  const wl=area==="hrg"?(lang==="ar"?"البحر الأحمر":"Red Sea"):(lang==="ar"?"قناة السويس":"Suez Canal");
+  const water=`<rect x="${W-34}" y="0" width="34" height="${H}" fill="#cfe6f2"/><text x="${W-12}" y="${H/2}" fill="#6b9ab3" font-size="12" text-anchor="middle" transform="rotate(90 ${W-12} ${H/2})">${wl}</text>`;
+  const grid=[1,2,3,4,5].map(i=>`<line x1="${W*i/6}" y1="0" x2="${W*i/6}" y2="${H}" stroke="#e7ebe7"/><line x1="0" y1="${H*i/6}" x2="${W}" y2="${H*i/6}" stroke="#e7ebe7"/>`).join("");
+  const pins=fs.map(f=>{const w=worstOf(f.code);const x=X(f.lng),y=Y(f.lat);const sel=mapSel===f.code;
+    return `<g class="pin" data-act="mapPin" data-code="${f.code}"><circle cx="${x}" cy="${y}" r="${sel?16:13}" fill="${statusColor(w)}" opacity=".18"/><circle class="c" cx="${x}" cy="${y}" r="${sel?10:8}" fill="${statusColor(w)}" stroke="#fff" stroke-width="2.5"/>
+      <text x="${x}" y="${y-15}" text-anchor="middle" font-size="11.5" font-weight="600" fill="#1c2321">${f.code}</text></g>`}).join("");
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="direction:ltr"><rect width="${W}" height="${H}" fill="#f7f8f5"/>${grid}${water}${pins}</svg>`;
+}
+let REAL_MAP=/^https?:$/.test(location.protocol)&&!window.claude&&!/claude|anthropic/i.test(location.hostname);
+let leafletP=null;
+function loadLeaflet(){if(leafletP)return leafletP;leafletP=new Promise((res,rej)=>{const l=document.createElement("link");l.rel="stylesheet";l.href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css";document.head.appendChild(l);
+  const sc=document.createElement("script");sc.src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";sc.onload=()=>res(window.L);sc.onerror=rej;document.head.appendChild(sc)});return leafletP}
+function initRealMaps(){if(!REAL_MAP)return;loadLeaflet().then(LF=>{let errs=0;
+  ["ism","hrg"].forEach(a=>{const el=document.getElementById("lmap-"+a);if(!el||el._done)return;el._done=1;const fs=S.fridges.filter(f=>f.area===a);
+    const m=LF.map(el,{scrollWheelZoom:false});const tl=LF.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18,attribution:"© OpenStreetMap"}).addTo(m);
+    tl.on("tileerror",()=>{if(++errs>6&&REAL_MAP){REAL_MAP=false;render()}});
+    fs.forEach(f=>{const c=statusColor(worstOf(f.code)).replace(/var\(--(\w+)\)/,(_,v)=>getComputedStyle(document.documentElement).getPropertyValue("--"+v).trim());
+      LF.circleMarker([f.lat,f.lng],{radius:9,color:"#fff",weight:2.5,fillColor:c,fillOpacity:1}).addTo(m).bindTooltip(`${f.code} · ${L(f,"shop")}`).on("click",()=>{mapSel=f.code;const box=document.getElementById("info-"+a);if(box)box.innerHTML=mapInfo(a)})});
+    m.fitBounds(LF.latLngBounds(fs.map(f=>[f.lat,f.lng])).pad(0.25))})}).catch(()=>{REAL_MAP=false;render()})}
+function mapInfo(a){const f=mapSel&&fridgeBy(mapSel);if(!f||f.area!==a)return `<div class="muted" style="font-size:13px">${t("clickPin")}</div>`;
+    const bs=live().filter(b=>b.fridge===f.code).sort((x,y)=>x.exp.localeCompare(y.exp));
+    return `<div class="row" style="justify-content:space-between"><div><b>${esc(L(f,"owner"))}</b> <span class="muted">· ${esc(L(f,"shop"))}</span><div class="muted" style="font-size:12.5px">${esc(L(f,"addr"))} · <span dir="ltr">${esc(f.phone)}</span></div></div>
+    <div class="row"><a class="btn sm" href="https://www.google.com/maps?q=${f.lat},${f.lng}" target="_blank" rel="noopener">${t("openMaps")}</a><button class="btn sm" data-act="fridgeDetail" data-code="${f.code}">${t("fridgeStock")}</button></div></div>
+    <div class="chips" style="margin-top:8px">${bs.map(b=>`<span class="badge b-${status(b.exp)}">${esc(prodName(b.sku).replace(/^عصير /,""))} ${esc(sizeName(b.sku))} × ${fmt(b.qty)}</span>`).join("")||`<span class="muted">${t("noStock")}</span>`}</div>`}
+function vMap(){
+  return header(t("map"),t("mapSub"))+`<div class="grid maps">${["ism","hrg"].map(a=>`<div class="card map"><h3>${t(a)} ${REAL_MAP?"":`<span class="muted" style="font-weight:400;font-size:12px">— ${t("schematic")}</span>`}</h3>${REAL_MAP?`<div class="lmap" id="lmap-${a}"></div>`:mapSVG(a)}<div class="mapinfo" id="info-${a}">${mapInfo(a)}</div></div>`).join("")}</div>
+  <div class="legend"><span><i class="dot" style="background:var(--ok)"></i>${t("ok")}</span><span><i class="dot" style="background:var(--warn)"></i>${t("warn")}</span><span><i class="dot" style="background:var(--bad)"></i>${t("bad")}</span></div>`;
+}
+
+let actUser="";
+function vActivity(){
+  const items=[...S.moves.filter(m=>m.ts).map(m=>({ts:m.ts,user:m.user,kind:"move",m})),...(S.log||[]).map(l=>({ts:l.ts,user:l.user,kind:"log",l}))]
+    .filter(x=>!actUser||x.user===actUser).sort((a,b)=>b.ts.localeCompare(a.ts)).slice(0,150);
+  const txt=x=>{if(x.kind==="log")return t("a_"+x.l.act,x.l.p);const m=x.m,f=fridgeBy(m.fridge);const P={q:fmt(m.qty),p:prodName(m.sku)+" "+sizeName(m.sku),w:wt(kgOf(m.sku,m.qty)),f:f?L(f,"shop"):m.fridge,ty:t("t_"+m.type)};
+    return t(m.type==="in"?"a_in":"a_out",P)+(m.note?` <span class="muted">· ${esc(m.note)}</span>`:"")};
+  const ic=x=>x.kind==="log"?"⚙":x.m.type==="in"?"＋":"−";
+  return header(t("activity"),t("activitySub"),`<select data-act-user="1">${[`<option value="">${t("allUsers")}</option>`,...USERS.map(u=>`<option value="${u.u}" ${actUser===u.u?"selected":""}>${esc(L(u,"name"))}</option>`)].join("")}</select>`)+
+  `<div class="card"><div class="feed">${items.map(x=>{const u=userBy(x.user);return `<div class="it">${avatar(x.user)}<div style="flex:1;min-width:0"><div><b>${esc(L(u,"name"))}</b> <span class="badge b-gray" style="font-size:11px">${t("r_"+u.role)}</span> ${txt(x)}</div><div class="tm">${ic(x)} ${fmtTs(x.ts)}</div></div></div>`}).join("")||`<div class="empty">${t("empty")}</div>`}</div></div>`}
+function vProducts(){
+  const lb=live();
+  return header(t("products"),t("productsSub"),`<button class="btn pri" data-act="addProduct">＋ ${t("addProduct")}</button>`)+
+  `<div class="tbl-wrap"><table><tr><th>${t("code")}</th><th>${t("product")}</th><th>${t("size")} · SKU</th><th>${t("totalStock")}</th></tr>
+  ${S.products.map(p=>{const tot=lb.filter(b=>b.sku.startsWith(p.code+"-")).reduce((s,b)=>s+b.qty,0);
+    return `<tr><td><span class="chip" style="border-inline-start:3px solid ${p.color||"var(--brand)"}">${p.code}</span></td><td><b>${esc(L(p,"name"))}</b><div class="muted" style="font-size:12px">${esc(lang==="ar"?p.nameEn:p.nameAr)}</div></td>
+    <td><div class="chips" style="margin:0">${p.variants.map(v=>`<span class="chip">${esc(L(v,"size"))} · <span dir="ltr">${v.sku}</span> · <b>${fmt(lb.filter(b=>b.sku===v.sku).reduce((s,b)=>s+b.qty,0))}</b></span>`).join("")}</div></td><td class="num"><b>${fmt(tot)}</b></td></tr>`}).join("")}</table></div>`;
+}
+
+function vMoves(){
+  const q=filt.q.trim().toLowerCase();
+  const rows=[...S.moves].reverse().filter(m=>{const f=fridgeBy(m.fridge);if(!f)return false;
+    if(filt.area&&f.area!==filt.area)return false;if(filt.fridge&&m.fridge!==filt.fridge)return false;if(filt.product&&!m.sku.startsWith(filt.product+"-"))return false;
+    if(filt.status&&m.type!==filt.status)return false;
+    if(q&&![f.code,f.ownerAr,f.ownerEn,m.sku,prodName(m.sku),m.batch,m.note].join(" ").toLowerCase().includes(q))return false;return true});
+  const typeBadge=ty=>`<span class="badge ${ty==="in"?"b-ok":ty==="sale"?"b-gray":ty==="return"?"b-warn":"b-bad"}">${t("t_"+ty)}</span>`;
+  const shown=rows.slice(0,300);
+  return header(t("moves"),t("movesSub"),`<button class="btn" data-act="exportMoves">⤓ ${t("export")}</button>`)+
+  filterSelects(false).replace('</div>',`<select data-filt="status"><option value="">${t("type")}</option>${["in","sale","return","expired"].map(s=>`<option value="${s}" ${filt.status===s?"selected":""}>${t("t_"+s)}</option>`).join("")}</select></div>`)+
+  (shown.length?`<div class="tbl-wrap"><table><tr><th>${t("date")}</th><th>${t("type")}</th><th>${t("fridge")}</th><th>${t("product")}</th><th>${t("size")}</th><th>${t("qty")}</th><th>${t("weight")}</th><th>${t("lot")}</th><th>${t("by")}</th><th>${t("note")}</th></tr>
+  ${shown.map(m=>{const f=fridgeBy(m.fridge);return `<tr><td class="num">${m.date}</td><td>${typeBadge(m.type)}</td><td>${esc(L(f,"owner"))} <span class="muted" style="font-size:12px">${m.fridge}</span></td><td>${esc(prodName(m.sku))}</td><td>${esc(sizeName(m.sku))}</td><td class="num"><b>${m.type==="in"?"+":"−"}${fmt(m.qty)}</b></td><td class="num muted">${wt(kgOf(m.sku,m.qty))}</td><td>${lotChip((S.batches.find(b=>b.id===m.batch)||{}).lot)}</td><td style="white-space:nowrap">${m.user?`${esc(L(userBy(m.user),"name").split(" — ")[0])} <span class="muted" style="font-size:12px">${m.ts?fmtTs(m.ts).split(/,|،/).pop().trim():""}</span>`:""}</td><td class="muted">${esc(m.note)}</td></tr>`}).join("")}</table></div>`:`<div class="card empty">${t("empty")}</div>`);
+}
+
+/* ---- CSV import ---- */
+function parseCSV(text){
+  text=text.replace(/^﻿/,"");const rows=[];let row=[],cell="",q=false;
+  for(let i=0;i<text.length;i++){const c=text[i];
+    if(q){if(c==='"'){if(text[i+1]==='"'){cell+='"';i++}else q=false}else cell+=c}
+    else if(c==='"')q=true;else if(c===","||c===";"||c==="\t"){row.push(cell);cell=""}
+    else if(c==="\n"||c==="\r"){if(c==="\r"&&text[i+1]==="\n")i++;row.push(cell);if(row.some(x=>x.trim()!==""))rows.push(row);row=[];cell=""}
+    else cell+=c}
+  row.push(cell);if(row.some(x=>x.trim()!==""))rows.push(row);return rows;
+}
+function normDate(s){s=String(s||"").trim().replace(/[٠-٩]/g,d=>"٠١٢٣٤٥٦٧٨٩".indexOf(d));let m;
+  if(m=s.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})$/))return iso(m[1],m[2],m[3]);
+  if(m=s.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})$/))return iso(m[3],m[2],m[1]);return null;
+  function iso(y,mo,d){const dt=new Date(Date.UTC(+y,+mo-1,+d));if(dt.getUTCMonth()!==+mo-1)return null;return dt.toISOString().slice(0,10)}}
+function resolveFridge(v){v=String(v||"").trim().toLowerCase();if(!v)return null;
+  return S.fridges.find(f=>[f.code,f.ownerAr,f.ownerEn,f.shopAr,f.shopEn].some(x=>String(x).trim().toLowerCase()===v))||null}
+function resolveSku(sku,product,size){const m=skuMap();if(sku){const k=String(sku).trim().toUpperCase();if(m[k])return k}
+  if(product){const pv=String(product).trim().toLowerCase();const sz=String(size||"").replace(/[^\d.]/g,"");
+    const p=S.products.find(p=>[p.code,p.nameAr,p.nameEn,p.nameAr.replace(/^عصير /,""),p.nameEn.replace(/ Juice$/i,"")].some(x=>x.toLowerCase()===pv));
+    if(p){const raw=String(size||"").toLowerCase().replace(/\s/g,"");const u=/(لتر|liter|litre|l$)/.test(raw)?"L":/(طن|ton|t$)/.test(raw)?"T":/(كجم|كيلو|kg)/.test(raw)?"kg":null;
+      const v=p.variants.find(v=>v.size===+sz&&(!u||v.unit===u));if(v)return v.sku}}return null}
+function analyzeCSV(text){
+  const rows=parseCSV(text);if(!rows.length)return [];
+  const H=rows[0].map(h=>h.trim().toLowerCase().replace(/\s+/g,"_"));
+  const col=names=>H.findIndex(h=>names.includes(h));
+  const ci={fridge:col(["fridge","fridge_code","التلاجة","تلاجة"]),sku:col(["sku"]),product:col(["product","المنتج","منتج"]),size:col(["size","الحجم","حجم"]),
+    qty:col(["qty","quantity","الكمية","كمية"]),prod:col(["production_date","prod","تاريخ_الإنتاج","تاريخ_الانتاج"]),exp:col(["expiry_date","exp","expiry","تاريخ_الانتهاء"]),lot:col(["lot","lot_no","batch_no","رقم_اللوط","اللوط"])};
+  return rows.slice(1).map((r,i)=>{const g=k=>ci[k]>=0?(r[ci[k]]||"").trim():"";const errs=[];
+    const f=resolveFridge(g("fridge"));if(!f)errs.push(t("e_fridge"));
+    const sku=resolveSku(g("sku"),g("product"),g("size"));if(!sku)errs.push(t("e_sku"));
+    const qty=Number(String(g("qty")).replace(/[٠-٩]/g,d=>"٠١٢٣٤٥٦٧٨٩".indexOf(d)));if(!(qty>0)||!Number.isInteger(qty))errs.push(t("e_qty"));
+    const prod=normDate(g("prod")),exp=normDate(g("exp"));if(!prod||!exp)errs.push(t("e_date"));else if(exp<prod)errs.push(t("e_order"));
+    return {line:i+2,raw:{fridge:g("fridge"),sku:g("sku")||[g("product"),g("size")].filter(Boolean).join(" "),qty:g("qty"),prod:g("prod"),exp:g("exp")},fridge:f&&f.code,sku,qty,prod,exp,lot:g("lot")||(sku&&prod?autoLot(sku,prod):""),errs}});
+}
+function vImport(){
+  let prev="";
+  if(csvRows){const ok=csvRows.filter(r=>!r.errs.length).length,bad=csvRows.length-ok;
+    prev=`<div class="card" style="margin-top:14px"><div class="row" style="justify-content:space-between;margin-bottom:10px"><h3 style="margin:0">${t("preview")} · ${fmt(csvRows.length)} ${t("rows")}</h3>
+    <div class="row"><span class="badge b-ok">${fmt(ok)} ${t("valid")}</span>${bad?`<span class="badge b-bad">${fmt(bad)} ${t("invalid")}</span>`:""}<button class="btn pri" data-act="doImport" ${ok?"":"disabled"}>${t("importN",{n:fmt(ok)})}</button></div></div>
+    <div style="overflow:auto;max-height:420px"><table><tr><th>#</th><th>${t("fridge")}</th><th>${t("product")}</th><th>${t("qty")}</th><th>${t("prod")}</th><th>${t("exp")}</th><th>${t("status")}</th></tr>
+    ${csvRows.map(r=>{const f=r.fridge&&fridgeBy(r.fridge);return `<tr style="${r.errs.length?"background:var(--bad-bg)":""}"><td class="muted">${r.line}</td><td>${f?esc(L(f,"owner"))+` <span class="muted" style="font-size:12px">${f.code}</span>`:esc(r.raw.fridge)}</td>
+    <td>${r.sku?esc(prodName(r.sku))+" "+esc(sizeName(r.sku)):esc(r.raw.sku)}</td><td class="num">${esc(r.raw.qty)}</td><td class="num">${r.prod||esc(r.raw.prod)}</td><td class="num">${r.exp||esc(r.raw.exp)}</td>
+    <td>${r.errs.length?`<span class="err">${r.errs.map(esc).join("، ")}</span>`:badge(r.exp)}</td></tr>`}).join("")}</table></div></div>`}
+  return header(t("import"),t("importSub"),`<button class="btn" data-act="template">⤓ ${t("template")}</button>`)+
+  `<div class="grid two"><div><div class="drop" id="drop" data-act="pickFile"><div style="font-size:30px">📄</div><b>${t("dropHere")}</b><div class="muted" style="font-size:12.5px;margin-top:4px">.csv</div></div>
+   <textarea id="pasteBox" placeholder="${t("orPaste")}" style="width:100%;height:110px;margin-top:10px;direction:ltr;font-size:12.5px"></textarea>
+   <button class="btn" data-act="previewPaste" style="margin-top:6px">${t("preview")}</button></div>
+   <div class="card"><h3>${t("csvFormat")}</h3><p class="muted" style="font-size:13px;margin-top:0">${t("csvCols")}</p><code class="csv">${esc(templateCSV())}</code></div></div>`+prev;
+}
+function templateCSV(){const d=todayISO();return toCSV([["fridge","sku","qty","production_date","expiry_date","lot"],["ISM-01","MNG-5",20,addDays(d,-5),addDays(d,85),autoLot("MNG",addDays(d,-5))],["HRG-02","GUA-3",15,addDays(d,-2),addDays(d,88),""],["ISM-02","KIW-10",6,addDays(d,-10),addDays(d,80),""]])}
+
+/* ================= Modals ================= */
+function modal(html,wide=false){const m=document.getElementById("modal");m.className="modal"+(wide?" wide":"");m.innerHTML=html;document.getElementById("modalBg").classList.add("show")}
+function closeModal(){document.getElementById("modalBg").classList.remove("show")}
+const fridgeOpts=sel=>S.fridges.map(f=>`<option value="${f.code}" ${sel===f.code?"selected":""}>${f.code} · ${esc(L(f,"owner"))} — ${esc(L(f,"shop"))}</option>`).join("");
+const skuOpts=()=>S.products.map(p=>`<optgroup label="${esc(L(p,"name"))}">${p.variants.map(v=>`<option value="${v.sku}">${esc(L(p,"name"))} — ${esc(L(v,"size"))}</option>`).join("")}</optgroup>`).join("");
+
+function mAddStock(fr){const d=todayISO();
+  modal(`<h2>＋ ${t("addStock")}</h2><form class="form" data-form="addStock">
+   <label class="full">${t("fridge")}<select name="fridge" required>${fridgeOpts(fr)}</select></label>
+   <label>${t("product")} / ${t("size")}<select name="sku" required>${skuOpts()}</select></label>
+   <label>${t("qty")}<div class="row" style="flex-wrap:nowrap"><input type="number" name="qty" min="1" step="any" required value="10" style="flex:1"><select name="qu"><option value="units">${t("byUnits")}</option><option value="kg">${t("byKg")}</option></select></div></label>
+   <label>${t("prod")}<input type="date" name="prod" required value="${d}"></label>
+   <label>${t("exp")}<input type="date" name="exp" required value="${addDays(d,90)}"></label>
+   <label>${t("lot")} <span class="hint">${t("lotHint")}</span><input type="text" name="lot" dir="ltr"></label>
+   <label>${t("note")}<input type="text" name="note"></label>
+   <div class="full err" id="fErr"></div>
+  </form><div class="form-foot"><button class="btn" data-act="closeModal">${t("cancel")}</button><button class="btn pri" data-act="submit" data-f="addStock">${t("save")}</button></div>`)}
+
+let wd=null;
+function mWithdraw(batchId,frPre){
+  const b0=batchId&&S.batches.find(b=>b.id===batchId);const fr=b0?b0.fridge:(frPre||filt.fridge||S.fridges[0].code);
+  wd={mode:b0?"manual":"auto",fr,sku:b0?b0.sku:null,batch:b0?b0.id:null,qty:"",qu:"units",type:"sale",date:todayISO(),note:""};fixWd();renderWd()}
+function skusIn(fr){return [...new Set(live().filter(b=>b.fridge===fr).map(b=>b.sku))]}
+function fixWd(){const sk=skusIn(wd.fr);if(!sk.includes(wd.sku))wd.sku=sk[0]||null;
+  const ob=orderB(live().filter(b=>b.fridge===wd.fr));if(!ob.some(b=>b.id===wd.batch))wd.batch=(ob.find(b=>b.sku===wd.sku)||ob[0]||{}).id||null;
+  if(wd.mode==="manual"){const b=S.batches.find(x=>x.id===wd.batch);if(b)wd.sku=b.sku}}
+function renderWd(){
+  const ob=orderB(live().filter(b=>b.fridge===wd.fr));
+  const firstBySku={};ob.forEach(b=>{if(!firstBySku[b.sku])firstBySku[b.sku]=b.id});
+  const modeChips=["auto","manual"].map(m=>`<label class="szopt"><input type="radio" name="wdmode" value="${m}" data-wd="mode" ${wd.mode===m?"checked":""}><span>${m==="auto"?"⚡ ":""}${t(m)}</span></label>`).join("");
+  modal(`<h2>${t("withdraw")}</h2><div class="sizes" style="margin-bottom:14px">${modeChips}</div>
+  <form class="form" data-form="withdraw" onsubmit="return false">
+   <label class="full">${t("fridge")}<select data-wd="fr">${fridgeOpts(wd.fr)}</select></label>
+   ${wd.mode==="auto"?`<label class="full">${t("product")} / ${t("size")}<select data-wd="sku">${skusIn(wd.fr).map(k=>{const a=allocate(wd.fr,k,0).avail;return `<option value="${k}" ${k===wd.sku?"selected":""}>${esc(prodName(k))} — ${esc(sizeName(k))} · ${fmt(a)} ${t("available")} (${wt(kgOf(k,a))})</option>`}).join("")||`<option>${t("noStock")}</option>`}</select></label>`
+   :`<label class="full">${t("batch")} <span class="hint">${t("policy")}: ${S.policy==="fifo"?"FIFO":"FEFO"} · ★ = ${t("goesFirst")}</span><select data-wd="batch">${ob.map(b=>`<option value="${b.id}" ${b.id===wd.batch?"selected":""}>${firstBySku[b.sku]===b.id?"★ ":""}${b.id} · ${esc(prodName(b.sku))} ${esc(sizeName(b.sku))} · ${fmt(b.qty)} ${t("available")} · ${t("entry")} ${b.entry} · ${t("exp")} ${b.exp}</option>`).join("")||`<option>${t("noStock")}</option>`}</select></label>`}
+   <label>${t("qty")}<div class="row" style="flex-wrap:nowrap"><input type="number" min="0" step="any" data-wd="qty" value="${esc(wd.qty)}" style="flex:1" placeholder="0"><select data-wd="qu"><option value="units" ${wd.qu==="units"?"selected":""}>${t("byUnits")}</option><option value="kg" ${wd.qu==="kg"?"selected":""}>${t("byKg")}</option></select></div></label>
+   <label>${t("type")}<select data-wd="type">${["sale","return","expired"].map(s=>`<option value="${s}" ${wd.type===s?"selected":""}>${t("t_"+s)}</option>`).join("")}</select></label>
+   <label>${t("date")}<input type="date" data-wd="date" value="${wd.date}"></label>
+   <label>${t("reason")}<input type="text" data-wd="note" value="${esc(wd.note)}"></label>
+   <div class="full" id="wdPrev"></div>
+   <div class="full err" id="fErr"></div>
+  </form><div class="form-foot"><button class="btn" data-act="closeModal">${t("cancel")}</button><button class="btn pri" data-act="submit" data-f="withdraw">${t("save")}</button></div>`,true);
+  renderWdPrev()}
+function wdUnits(){const q=parseFloat(wd.qty);if(!(q>0))return {u:0};const sku=wd.mode==="auto"?wd.sku:(S.batches.find(b=>b.id===wd.batch)||{}).sku;if(!sku)return {u:0};
+  if(wd.qu==="kg"){const pk=packKg(sku),u=q/pk;if(Math.abs(u-Math.round(u))>1e-6)return {u:0,err:t("notMultiple",{n:wt(pk)})};return {u:Math.round(u),sku}}
+  if(!Number.isInteger(q))return {u:0,err:t("e_qty")};return {u:q,sku}}
+function renderWdPrev(){const box=document.getElementById("wdPrev");if(!box)return;const {u,sku,err}=wdUnits();let h="";
+  if(err)h=`<div class="err">${err}</div>`;
+  else if(u){h=`<div class="muted" style="font-size:13px;margin-bottom:8px">${t("eqU",{u:fmt(u),w:wt(kgOf(sku,u))})}</div>`;
+    if(wd.mode==="auto"){const a=allocate(wd.fr,sku,u);
+      h+=`<div class="card" style="padding:12px;background:var(--bg)"><b style="font-size:13px">${t("plan")} (${S.policy==="fifo"?"FIFO":"FEFO"})</b><table style="margin-top:6px"><tr><th>${t("batch")}</th><th>${t("lot")}</th><th>${t("entry")}</th><th>${t("exp")}</th><th>${t("take")}</th><th>${t("remainAfter")}</th></tr>
+      ${a.out.map(x=>`<tr><td class="muted">${x.b.id}</td><td dir="ltr" style="font-size:12px">${esc(x.b.lot||"")}</td><td class="num">${x.b.entry}</td><td class="num">${x.b.exp}</td><td class="num"><b>${fmt(x.take)}</b> <span class="muted">(${wt(kgOf(x.b.sku,x.take))})</span></td><td>${x.b.qty-x.take===0?`<span class="badge b-gray">✓ ${t("finished")}</span>`:fmt(x.b.qty-x.take)}</td></tr>`).join("")}</table>
+      ${a.short?`<div class="err" style="margin-top:6px">${t("shortBy",{n:fmt(a.avail)})}</div>`:""}</div>`}
+    else{const b=S.batches.find(x=>x.id===wd.batch);if(b&&u>b.qty)h+=`<div class="err">${t("overQty")} (${fmt(b.qty)})</div>`}}
+  if(wd.mode==="manual"){const b=S.batches.find(x=>x.id===wd.batch);const old=b?olderOf(b):[];
+    if(old.length)h+=`<div style="margin-top:8px;padding:10px 12px;border-radius:9px;background:var(--warn-bg);color:#7a5600;font-size:13px">⚠ <b>${t("outOfOrder")}</b> ${old.map(o=>`${o.id} (${t("entry")} ${o.entry} · ${t("exp")} ${o.exp} · ${fmt(o.qty)})`).join("، ")}<br>${t("reasonReq")}</div>`}
+  box.innerHTML=h}
+
+function mAddFridge(){
+  modal(`<h2>＋ ${t("addFridge")}</h2><form class="form" data-form="addFridge">
+   <label>${t("area")}<select name="area"><option value="ism">${t("ism")}</option><option value="hrg">${t("hrg")}</option></select></label>
+   <label>${t("phone")}<input type="tel" name="phone" dir="ltr"></label>
+   <label>${t("owner")}<input type="text" name="ownerAr" required></label><label>${t("ownerEn")}<input type="text" name="ownerEn" dir="ltr"></label>
+   <label>${t("shop")}<input type="text" name="shopAr"></label><label>${t("shopEn")}<input type="text" name="shopEn" dir="ltr"></label>
+   <label>${t("address")}<input type="text" name="addrAr"></label>
+   <label>${t("cap")}<input type="number" name="cap" min="0" step="0.5" value="10"></label>
+   <label>${t("lat")}<input type="text" name="lat" dir="ltr" placeholder="30.59"></label><label>${t("lng")}<input type="text" name="lng" dir="ltr" placeholder="32.27"></label>
+   <div class="full err" id="fErr"></div>
+  </form><div class="form-foot"><button class="btn" data-act="closeModal">${t("cancel")}</button><button class="btn pri" data-act="submit" data-f="addFridge">${t("save")}</button></div>`)}
+
+function mAddProduct(){
+  modal(`<h2>＋ ${t("addProduct")}</h2><form class="form" data-form="addProduct">
+   <label>${t("nameAr")}<input type="text" name="nameAr" required placeholder="عصير رمان"></label><label>${t("nameEn")}<input type="text" name="nameEn" dir="ltr" placeholder="Pomegranate Juice"></label>
+   <label>${t("code")}<input type="text" name="code" dir="ltr" maxlength="4" required placeholder="POM"></label>
+   <div class="full"><div style="font-size:13px;font-weight:500;margin-bottom:6px">${t("unit")}</div>
+    <div class="sizes">${Object.keys(UNITS).map(u=>`<label class="szopt"><input type="radio" name="unit" value="${u}" data-chg="unit" ${u==="kg"?"checked":""}><span>${lang==="ar"?{kg:"كيلوجرام",L:"لتر",T:"طن"}[u]:{kg:"Kilogram",L:"Liter",T:"Ton"}[u]}</span></label>`).join("")}</div></div>
+   <div class="full"><div style="font-size:13px;font-weight:500;margin-bottom:6px">${t("sizes")} <span class="hint">${t("sizesHint")}</span></div>
+    <div class="sizes" id="sizeBox">${sizeChips("kg")}</div>
+    <div class="row" style="margin-top:8px"><input type="number" name="custom" min="0" step="any" placeholder="${t("customSize")}" style="width:140px"><span class="muted" id="custUnit">${UNITS.kg[lang]}</span></div></div>
+   <div class="full err" id="fErr"></div>
+  </form><div class="form-foot"><button class="btn" data-act="closeModal">${t("cancel")}</button><button class="btn pri" data-act="submit" data-f="addProduct">${t("save")}</button></div>`)}
+
+function mFridgeDetail(code){const f=fridgeBy(code);const bs=orderB(live().filter(b=>b.fridge===code));
+  const mv=S.moves.filter(m=>m.fridge===code).slice(-6).reverse();
+  const groups={};bs.forEach(b=>(groups[b.sku]=groups[b.sku]||[]).push(b));
+  const gHtml=Object.entries(groups).map(([sku,list])=>{const tot=list.reduce((s,b)=>s+b.qty,0);
+    return `<div class="card" style="padding:12px 14px;margin-bottom:10px"><div class="row" style="justify-content:space-between"><b>${esc(prodName(sku))} — ${esc(sizeName(sku))}</b><span class="muted" style="font-size:13px">${fmt(list.length)} ${t("batches")} · ${fmt(tot)} ${t("units")} · <b style="color:var(--ink)">${wt(kgOf(sku,tot))}</b></span></div>
+    <div style="overflow:auto"><table style="margin-top:6px"><tr><th>#</th><th>${t("lot")}</th><th>${t("entry")}</th><th>${t("exp")}</th><th>${t("qty")}</th><th>${t("lifeUsed")}</th><th>${t("status")}</th><th></th></tr>
+    ${list.map((b,i)=>`<tr style="${i===0?"background:var(--brand-soft)":""}"><td class="muted">${b.id}</td><td>${lotChip(b.lot)}</td><td class="num">${b.entry}</td><td class="num">${b.exp}</td><td class="num"><b>${fmt(b.qty)}</b> <span class="muted">(${wt(kgOf(b.sku,b.qty))})</span></td><td>${lifeBar(b)}</td><td>${badge(b.exp)}</td>
+    <td>${i===0?`<span class="badge" style="background:var(--brand);color:var(--brand-ink)">★ ${t("goesFirst")}</span>`:""}</td></tr>`).join("")}</table></div></div>`}).join("");
+  modal(`<div class="row" style="justify-content:space-between;margin-bottom:6px"><div><div class="muted" style="font-size:12px;font-weight:600">${f.code} · ${t(f.area)}</div><h2 style="margin:2px 0">${esc(L(f,"owner"))}</h2>
+   <div class="muted" style="font-size:13px">${esc(L(f,"shop"))} — ${esc(L(f,"addr"))} · <span dir="ltr">${esc(f.phone)}</span></div></div>
+   <div class="row"><a class="btn sm" href="https://www.google.com/maps?q=${f.lat},${f.lng}" target="_blank" rel="noopener">📍 ${t("openMaps")}</a></div></div>
+   ${capBar(f)}
+   <div class="row" style="margin:12px 0"><button class="btn pri sm" data-act="addStock" data-code="${code}">＋ ${t("addStock")}</button><button class="btn sm" data-act="withdraw" data-fr="${code}">⚡ ${t("auto")}</button><span class="muted" style="font-size:12.5px">${t("policy")}: <b>${S.policy==="fifo"?"FIFO":"FEFO"}</b></span></div>
+   <h3>${t("fridgeStock")}</h3>${bs.length?gHtml:`<div class="empty">${t("noStock")}</div>`}
+   <h3 style="margin-top:16px">${t("lastMoves")}</h3><div class="chips">${mv.map(m=>`<span class="chip">${m.date} · ${t("t_"+m.type)} · ${esc(prodName(m.sku).replace(/^عصير /,""))} ${esc(sizeName(m.sku))} · ${m.type==="in"?"+":"−"}${fmt(m.qty)}</span>`).join("")}</div>
+   <div class="form-foot"><button class="btn" data-act="closeModal">${t("close")}</button></div>`,true)}
+
+function mLot(lot){const bs=S.batches.filter(b=>b.lot===lot);const ids=new Set(bs.map(b=>b.id));
+  const ins=id=>S.moves.filter(m=>m.batch===id&&m.type==="in").reduce((s,m)=>s+m.qty,0);
+  const liveF=new Set(bs.filter(b=>b.qty>0).map(b=>b.fridge));const b0=bs[0];
+  const mv=S.moves.filter(m=>ids.has(m.batch)).slice().reverse();
+  modal(`<div class="muted" style="font-size:12px;font-weight:600">${t("lotTrace")}</div><h2 style="margin:2px 0 4px" dir="ltr">${esc(lot)}</h2>
+   ${b0?`<div class="muted" style="font-size:13px;margin-bottom:12px">${esc(prodName(b0.sku))} · ${t("prod")} ${b0.prod} · ${t("exp")} ${b0.exp} · ${t("inN",{n:fmt(liveF.size)})}</div>`:""}
+   <div class="tbl-wrap"><table><tr><th>${t("batch")}</th><th>${t("fridge")}</th><th>${t("size")}</th><th>${t("entered")}</th><th>${t("current")}</th><th>${t("weight")}</th><th>${t("status")}</th></tr>
+   ${bs.map(b=>{const f=fridgeBy(b.fridge);return `<tr><td class="muted">${b.id}</td><td><a href="#" data-act="fridgeDetail" data-code="${f.code}"><b>${esc(L(f,"owner"))}</b></a> <span class="muted" style="font-size:12px">${f.code} · ${t(f.area)}</span></td><td>${esc(sizeName(b.sku))}</td><td class="num">${fmt(ins(b.id))}</td><td class="num"><b>${fmt(b.qty)}</b></td><td class="num">${wt(kgOf(b.sku,b.qty))}</td><td>${b.qty?badge(b.exp):`<span class="badge b-gray">✓ ${t("finished")}</span>`}</td></tr>`}).join("")}</table></div>
+   <h3 style="margin-top:16px">${t("lastMoves")}</h3><div class="chips">${mv.slice(0,12).map(m=>`<span class="chip">${m.date} · ${t("t_"+m.type)} · ${m.fridge} · ${m.type==="in"?"+":"−"}${fmt(m.qty)}</span>`).join("")}</div>
+   <div class="form-foot"><button class="btn" data-act="closeModal">${t("close")}</button></div>`,true)}
+function sizeChips(u){const def=u==="kg"?[3,5,10]:[];return UNITS[u].presets.map(k=>`<label class="szopt"><input type="checkbox" name="size" value="${k}" ${def.includes(k)?"checked":""}><span>${fmt(k)} ${UNITS[u][lang]}</span></label>`).join("")}
+function submitForm(name){
+  const form=document.querySelector(`[data-form="${name}"]`);const d=Object.fromEntries(new FormData(form).entries());const err=m=>document.getElementById("fErr").textContent=m;
+  if(name==="addStock"){let qty=parseFloat(d.qty);if(!d.fridge||!d.sku||!(qty>0)||!d.prod||!d.exp)return err(t("required"));if(d.exp<d.prod)return err(t("e_order"));
+    if(d.qu==="kg"){const pk=packKg(d.sku);const u=qty/pk;if(Math.abs(u-Math.round(u))>1e-6)return err(t("notMultiple",{n:wt(pk)}));qty=Math.round(u)}else if(!Number.isInteger(qty))return err(t("e_qty"));
+    const id="B"+String(S.nb++).padStart(4,"0");S.batches.push({id,fridge:d.fridge,sku:d.sku,qty,prod:d.prod,exp:d.exp,entry:todayISO(),lot:(d.lot||"").trim()||autoLot(d.sku,d.prod)});
+    S.moves.push({ts:nowTs(),user:SES&&SES.u,id:S.nm++,date:todayISO(),type:"in",fridge:d.fridge,sku:d.sku,batch:id,qty,note:d.note||""});toast(t("saved"))}
+  if(name==="withdraw"){const {u,err:e2}=wdUnits();if(e2)return err(e2);if(!u)return err(t("required"));const date=wd.date||todayISO(),pol=S.policy==="fifo"?"FIFO":"FEFO";
+    if(wd.mode==="auto"){const a=allocate(wd.fr,wd.sku,u);if(a.short)return err(t("shortBy",{n:fmt(a.avail)}));
+      a.out.forEach(x=>{x.b.qty-=x.take;S.moves.push({ts:nowTs(),user:SES&&SES.u,id:S.nm++,date,type:wd.type,fridge:x.b.fridge,sku:x.b.sku,batch:x.b.id,qty:x.take,note:[`⚡ ${pol}`,wd.note].filter(Boolean).join(" · ")})})}
+    else{const b=S.batches.find(x=>x.id===wd.batch);if(!b)return err(t("required"));if(u>b.qty)return err(t("overQty")+` (${b.qty})`);
+      const old=olderOf(b);if(old.length&&!wd.note.trim())return err(t("reasonReq"));
+      b.qty-=u;S.moves.push({ts:nowTs(),user:SES&&SES.u,id:S.nm++,date,type:wd.type,fridge:b.fridge,sku:b.sku,batch:b.id,qty:u,note:old.length?`⚠ ${t("offOrder")}: ${wd.note}`:wd.note})}
+    toast(t("withdrawn"))}
+  if(name==="addFridge"){if(!d.ownerAr)return err(t("required"));const n=S.fridges.filter(f=>f.area===d.area).length+1;let code=`${d.area==="ism"?"ISM":"HRG"}-${String(n).padStart(2,"0")}`;
+    while(fridgeBy(code))code=code.replace(/\d+$/,x=>String(+x+1).padStart(2,"0"));
+    const base=d.area==="ism"?[30.60,32.27]:[27.21,33.83];const lat=parseFloat(d.lat),lng=parseFloat(d.lng);
+    logAct("addFridge",{c:code});S.fridges.push({code,area:d.area,ownerAr:d.ownerAr,ownerEn:d.ownerEn||d.ownerAr,shopAr:d.shopAr||"",shopEn:d.shopEn||d.shopAr||"",addrAr:d.addrAr||"",addrEn:d.addrAr||"",phone:d.phone||"",cap:parseFloat(d.cap)||0,
+      lat:isFinite(lat)?lat:base[0]+(Math.random()-.5)*.03,lng:isFinite(lng)?lng:base[1]+(Math.random()-.5)*.03});toast(t("saved")+" · "+code)}
+  if(name==="addProduct"){const code=(d.code||"").trim().toUpperCase();if(!d.nameAr||!code)return err(t("required"));if(S.products.some(p=>p.code===code))return err(t("code")+" ✕");
+    const unit=d.unit||"kg";const sizes=[...form.querySelectorAll('input[name="size"]:checked')].map(x=>+x.value);if(parseFloat(d.custom)>0&&!sizes.includes(+d.custom))sizes.push(+d.custom);sizes.sort((a,b)=>a-b);if(!sizes.length)return err(t("required"));
+    logAct("addProduct",{c:code});S.products.push({code,nameAr:d.nameAr,nameEn:d.nameEn||d.nameAr,color:"#1f6f5c",variants:sizes.map(k=>mkVariant(code,k,unit))});toast(t("saved"))}
+  persist();closeModal();render();
+}
+
+/* ================= Events ================= */
+document.addEventListener("click",async e=>{
+  const el=e.target.closest("[data-act]");if(!el)return;const a=el.dataset.act;
+  if(SES&&GUARDED.includes(a)&&!can(a)){e.preventDefault();return toast(t("noPerm"))}
+  if(a==="demoLogin"){return doLogin(el.dataset.u,"1234")}
+  if(a==="logout"){logAct("logout");persist();SES=null;try{localStorage.removeItem(KEY+"-ses")}catch(x){}closeModal();return render()}
+  if(el.tagName==="A"&&(a==="lang"||a==="logout"))e.preventDefault();
+  if(a==="lang"){lang=lang==="ar"?"en":"ar";try{localStorage.setItem(KEY+"-lang",lang)}catch(x){}csvRows&&(csvRows=null);render()}
+  else if(a==="reset"){modal(`<h2>${t("reset")}</h2><p>${t("confirmReset")}</p><div class="form-foot"><button class="btn" data-act="closeModal">${t("cancel")}</button><button class="btn pri" data-act="doReset">${t("yes")}</button></div>`)}
+  else if(a==="doReset"){S=seed();logAct("reset");persist();filt={area:"",fridge:"",product:"",status:"",q:""};mapSel=null;csvRows=null;closeModal();render()}
+  else if(a==="closeModal")closeModal();
+  else if(a==="addStock")mAddStock(el.dataset.code);
+  else if(a==="withdraw"){e.preventDefault();mWithdraw(el.dataset.batch,el.dataset.fr)}
+  else if(a==="lot"){e.preventDefault();mLot(el.dataset.lot)}
+  else if(a==="addFridge")mAddFridge();
+  else if(a==="addProduct")mAddProduct();
+  else if(a==="fridgeDetail"){e.preventDefault();mFridgeDetail(el.dataset.code)}
+  else if(a==="mapPin"){mapSel=el.dataset.code;render()}
+  else if(a==="submit")submitForm(el.dataset.f);
+  else if(a==="pickFile")document.getElementById("fileIn").click();
+  else if(a==="previewPaste"){const v=document.getElementById("pasteBox").value;if(v.trim()){csvRows=analyzeCSV(v);render()}}
+  else if(a==="doImport"){const ok=csvRows.filter(r=>!r.errs.length);logAct("import",{n:ok.length});ok.forEach(r=>{const id="B"+String(S.nb++).padStart(4,"0");
+      S.batches.push({id,fridge:r.fridge,sku:r.sku,qty:r.qty,prod:r.prod,exp:r.exp,entry:todayISO(),lot:r.lot});S.moves.push({ts:nowTs(),user:SES&&SES.u,id:S.nm++,date:todayISO(),type:"in",fridge:r.fridge,sku:r.sku,batch:id,qty:r.qty,note:"CSV"})});
+      persist();csvRows=null;toast(t("imported",{n:fmt(ok.length)}));location.hash="stock";render()}
+  else if(a==="template")offerFile("ismailia-fresh-stock-template.csv",templateCSV());
+  else if(a==="exportStock"){const rows=fbOrdered().map(b=>{const f=fridgeBy(b.fridge);return [b.id,b.lot||"",f.code,f.ownerAr,f.ownerEn,t(f.area),b.sku,prodName(b.sku),sizeName(b.sku),b.qty,kgOf(b.sku,b.qty),b.entry,b.prod,b.exp,daysBetween(todayISO(),b.exp),t(status(b.exp))]});
+      offerFile(`stock-${todayISO()}.csv`,toCSV([["batch","lot","fridge","owner_ar","owner_en","area","sku","product","size","qty","weight_kg","entry_date","production_date","expiry_date","days_left","status"],...rows]))}
+  else if(a==="exportMoves"){offerFile(`movements-${todayISO()}.csv`,toCSV([["date","type","fridge","sku","product","size","qty","batch","note"],...S.moves.map(m=>[m.date,m.type,m.fridge,m.sku,prodName(m.sku),sizeName(m.sku),m.qty,m.batch,m.note])]))}
+  else if(a==="copyTa"){const ta=document.getElementById("cpy");try{await navigator.clipboard.writeText(ta.value);toast(t("copied"))}catch(x){ta.select()}}
+});
+document.addEventListener("change",e=>{
+  const el=e.target;
+  if(el.dataset.actUser){actUser=el.value;return render()}
+  if(el.dataset.filt){filt[el.dataset.filt]=el.value;if(el.dataset.filt==="area")filt.fridge="";render()}
+  else if(el.dataset.chg==="warnDays"){if(role()!=="admin"){toast(t("noPerm"));return render()}S.warnDays=+el.value;logAct("warnDays",{v:S.warnDays});persist();render()}
+  else if(el.dataset.chg==="policy"){if(role()!=="admin"){toast(t("noPerm"));return render()}S.policy=el.value;logAct("policy",{v:S.policy.toUpperCase()});persist();render()}
+  else if(el.dataset.wd&&wd){const k=el.dataset.wd;wd[k]=el.value;if(["mode","fr","sku","batch","qu"].includes(k)){fixWd();renderWd()}else renderWdPrev()}
+  else if(el.dataset.chg==="unit"){document.getElementById("sizeBox").innerHTML=sizeChips(el.value);document.getElementById("custUnit").textContent=UNITS[el.value][lang]}
+  else if(el.dataset.chg==="wdFridge"){document.getElementById("wdBatch").innerHTML=batchOpts(el.value)}
+});
+document.addEventListener("input",e=>{const el=e.target;if(el.dataset.wd&&wd&&["qty","note","date"].includes(el.dataset.wd)){wd[el.dataset.wd]=el.value;renderWdPrev();return}if(el.dataset.filt==="q"){filt.q=el.value;const pos=el.selectionStart;render();const n=document.querySelector('[data-filt="q"]');if(n){n.focus();try{n.setSelectionRange(pos,pos)}catch(x){}}}});
+document.getElementById("modalBg").addEventListener("click",e=>{if(e.target.id==="modalBg")closeModal()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal()});
+function readFile(file){if(!file)return;const r=new FileReader();r.onload=()=>{csvRows=analyzeCSV(String(r.result));if(route()!=="import")location.hash="import";render()};r.readAsText(file,"utf-8")}
+document.getElementById("fileIn").addEventListener("change",e=>{readFile(e.target.files[0]);e.target.value=""});
+document.addEventListener("dragover",e=>{const d=e.target.closest&&e.target.closest("#drop");if(d){e.preventDefault();d.classList.add("over")}});
+document.addEventListener("dragleave",e=>{const d=e.target.closest&&e.target.closest("#drop");if(d)d.classList.remove("over")});
+document.addEventListener("drop",e=>{const d=e.target.closest&&e.target.closest("#drop");if(d){e.preventDefault();d.classList.remove("over");readFile(e.dataTransfer.files[0])}});
+window.addEventListener("hashchange",()=>{filt.status="";render()});
+render();
+</script>
+</body>
+</html>
