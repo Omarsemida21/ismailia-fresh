@@ -17,12 +17,12 @@ A demo of a cold-storage inventory system for the Ismailia Fresh juice factory.
 
 - Products with sizes in **kg / liter / ton**
 - Cold stores with owner, location, and allocated capacity (load bar)
-- Every batch tracked separately: lot number, production / entry / expiry dates
+- Every batch tracked separately: production code, production / entry / expiry dates
 - **FEFO / FIFO** withdrawal order (setting)
 - **Auto withdraw**: enter a quantity (packs or kg) and it's split across batches in the right order
 - Warning + required reason when withdrawing out of order
 - Expiry status colors and shelf-life progress per batch
-- **Lot trace**: see where a production lot is distributed
+- **Production code trace**: see where a production run is distributed
 - CSV import with preview and validation; CSV export (Excel-friendly Arabic)
 - Map of all cold stores (OpenStreetMap)
 - Dashboard, movements log, and per-user **activity log**
@@ -36,3 +36,6 @@ It's a single static `index.html` — no build step.
 The site will be at `https://<username>.github.io/<repo>/`.
 
 To reset the demo data, sign in as `admin` and click **Reset demo data**.
+
+---
+Developed by **Omar Semida**
