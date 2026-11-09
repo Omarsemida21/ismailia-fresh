@@ -37,5 +37,12 @@ The site will be at `https://<username>.github.io/<repo>/`.
 
 To reset the demo data, sign in as `admin` and click **Reset demo data**.
 
+## Outlet store demos
+
+Each outlet has its own online store (products, sizes, cart, checkout → WhatsApp order summary):
+
+- Ismailia outlet: `/ismailia/`
+- Hurghada outlet: `/hurghada/`
+
 ---
 Developed by **Omar Semida**
