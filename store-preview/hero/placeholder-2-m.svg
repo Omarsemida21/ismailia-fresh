@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" width="1200" height="600">
+<rect width="1200" height="600" fill="#F39019"/>
+<circle cx="264.0" cy="468.0" r="372.0" fill="#1F3A12" opacity=".95"/>
+<g transform="translate(132.0 120.0) scale(4.5)" fill="none" stroke="#2B2A26" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M26 6h12v8l4 6v36a4 4 0 0 1-4 4H26a4 4 0 0 1-4-4V20l4-6z"/><path d="M22 30h20v14H22z"/></g>
+<text x="1128.0" y="276.0" text-anchor="start" font-family="system-ui,sans-serif" font-weight="700" font-size="60.0" fill="#2B2A26" direction="rtl">مكان صورة البانر 2</text>
+<text x="1128.0" y="360.0" text-anchor="end" font-family="system-ui,sans-serif" font-size="33.0" fill="#2B2A26" opacity=".8">Hero image 2 · 1200×600</text>
+</svg>
